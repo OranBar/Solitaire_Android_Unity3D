@@ -5,12 +5,20 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+//---------------------------
+    public int x_padding = 5;
+    public int y_padding = 50;
+    public int columns_count = 7;
+    public GameObject cardPrefab;
+//---------------------------
+
     public CardColumn[] tableu;
     public List<Card> stockPile;
     public List<Card> wastePile;
     public Dictionary<Suit, List<Card>> suit_to_foundationPile;
     //public something stock;
     public DeckShuffler shuffler;
+
 
     void Awake()
     {
@@ -33,9 +41,20 @@ public class GameManager : MonoBehaviour
         InitGame();
     }
 
+    [ContextMenu("InitGame")]
     private void InitGame()
     {
-        SetUpTable(7);
+        SetUpTable(columns_count);
+        SetUpGraphics(columns_count, x_padding, y_padding);
+    }
+
+    private void SetUpGraphics(int noOfColumns, int x_padding, int y_padding)
+    {
+        SolitaireGraphics graphics = new SolitaireGraphics();
+        Vector2[] positions = graphics.ComputePortraitPositions(noOfColumns, x_padding, y_padding);
+        foreach(var pos in positions){
+            GameObject.Instantiate(cardPrefab, pos, Quaternion.identity);
+        }
     }
 
     private void SetUpTable(int noOfColumns)
