@@ -308,8 +308,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53f1997ed1ae72c4ba812d8782e1d2e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  x_padding: 6
-  y_padding: 2
+  x_padding: 10
+  y_padding: 5
   columns_count: 7
   cardPrefab: {fileID: 2879556806617992131, guid: fc9ad7a708e05704ba134ca6d0e2e507,
     type: 3}
