@@ -53,9 +53,14 @@ public class GameManager : MonoBehaviour
     private void SetUpGraphics(int noOfColumns, int x_padding, int y_padding)
     {
         SolitaireGraphics graphics = new SolitaireGraphics();
-        Vector2[] positions = graphics.ComputePortraitPositions(noOfColumns, x_padding, y_padding);
+        Vector2 suggestedCardSize;
+        Vector2[] positions = graphics.ComputePortraitPositions(noOfColumns, x_padding, y_padding, out suggestedCardSize);
         foreach(var pos in positions){
-            GameObject.Instantiate(cardPrefab, pos, Quaternion.identity);
+            var newGo = GameObject.Instantiate(cardPrefab, pos, Quaternion.identity);
+            
+            var multiplier = (suggestedCardSize.x) / (newGo.GetComponent<CardGO>().mainSpriteRenderer.size.x);
+            newGo.transform.localScale = (newGo.transform.localScale) * (multiplier);
+            
         }
     }
 

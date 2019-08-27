@@ -273,6 +273,12 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &1424892906 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 2879556807225881241, guid: fc9ad7a708e05704ba134ca6d0e2e507,
+    type: 3}
+  m_PrefabInstance: {fileID: 2879556806980834122}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1449731565
 GameObject:
   m_ObjectHideFlags: 0
@@ -302,8 +308,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53f1997ed1ae72c4ba812d8782e1d2e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  x_padding: 5
-  y_padding: 50
+  x_padding: 6
+  y_padding: 2
   columns_count: 7
   cardPrefab: {fileID: 2879556806617992131, guid: fc9ad7a708e05704ba134ca6d0e2e507,
     type: 3}
@@ -321,6 +327,25 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1564665827 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2879556806617992131, guid: fc9ad7a708e05704ba134ca6d0e2e507,
+    type: 3}
+  m_PrefabInstance: {fileID: 2879556806980834122}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1564665828
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1564665827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1c9eff935eff7a418c6792367b7df5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainSpriteRenderer: {fileID: 1424892906}
 --- !u!1001 &2879556806980834122
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -336,7 +361,7 @@ PrefabInstance:
     - target: {fileID: 2879556806617992131, guid: fc9ad7a708e05704ba134ca6d0e2e507,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2879556806617992128, guid: fc9ad7a708e05704ba134ca6d0e2e507,
         type: 3}
@@ -392,6 +417,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2879556805980219123, guid: fc9ad7a708e05704ba134ca6d0e2e507,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fc9ad7a708e05704ba134ca6d0e2e507, type: 3}
