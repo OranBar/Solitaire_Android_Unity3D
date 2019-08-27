@@ -9,11 +9,12 @@ public class DeckShuffler
 {
     
     public string seed;
-    public Card[] deck;
     
+    private Stack<Card> deck;
+
     public void InitCards(){
         Random rnd = new Random();
-        deck = new Card[52];
+        Card[] tmpDeck = new Card[52];
         List<int> availableIndexes = Enumerable.Range(0, 52).ToList();
 
         foreach(Suit suit in Enum.GetValues(typeof(Suit))){
@@ -21,26 +22,23 @@ public class DeckShuffler
                 Card card = new Card(cardValue, suit);
                 
                 int cardIndex = availableIndexes[rnd.Next(availableIndexes.Count)];
-                deck[cardIndex] = card;
+                tmpDeck[cardIndex] = card;
                 availableIndexes.Remove(cardIndex);
             }
         }
-    }
 
-    private void RefreshSeed(){
-
+        this.deck = new Stack<Card>(tmpDeck);
     }
 
     public void ShuffleDeck()
     {
-        RefreshSeed();
-        throw new NotImplementedException();
+        InitCards();
     }
 
     public List<Card> DrawCards(int noOfCardsToDraw)
     {
         List<Card> result = new List<Card>();
-        for(int i=0; i<noOfCardsToDraw; i++){
+        for(int i=0; i < noOfCardsToDraw; i++){
             result.Add(DrawCard());
         }
         return result;
@@ -48,6 +46,14 @@ public class DeckShuffler
 
     public Card DrawCard()
     {
-        throw new NotImplementedException();
+        if(this.deck.Count == 0){
+            Debug.LogError("Card drwan from empty deck");
+            return null;
+        }
+        return this.deck.Pop();
+    }
+
+    public int GetRemainigCardsCount(){
+        return this.deck.Count;
     }
 }

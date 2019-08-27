@@ -32,9 +32,6 @@ static class SuitMethods
 
 public class Card 
 {
-    
-    
-
     public readonly int value;
     public readonly Suit suit;
     public readonly SuitColor suitColor;

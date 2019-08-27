@@ -1,11 +1,16 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public CardColumn[] cardColumns;
-    public Shuffler shuffler;
+    public CardColumn[] tableu;
+    public List<Card> stockPile;
+    public List<Card> wastePile;
+    public Dictionary<Suit, List<Card>> suit_to_foundationPile;
+    //public something stock;
+    public DeckShuffler shuffler;
 
     void Awake()
     {
@@ -30,15 +35,20 @@ public class GameManager : MonoBehaviour
 
     private void InitGame()
     {
-        SetUpColumns();
+        SetUpTable(7);
     }
 
-    private void SetUpColumns()
+    private void SetUpTable(int noOfColumns)
     {
-        shuffler.ShuffleDeck();
+        if(noOfColumns <= 9){
+            throw new Exception("Too Many Columns. Please choose a number <= 9");
+        }
 
-        cardColumns = new CardColumn[8];
-        for (int i = 0; i < 7; i++)
+        shuffler.ShuffleDeck();
+        
+        //Init Tableu
+        tableu = new CardColumn[noOfColumns];
+        for (int i = 0; i < noOfColumns; i++)
         {
             CardColumn newCardColumn = new CardColumn();
 
@@ -48,7 +58,18 @@ public class GameManager : MonoBehaviour
             List<Card> faceUpcard = shuffler.DrawCards(1);
             newCardColumn.faceUpCards = faceUpcard;
 
-            cardColumns[i] = newCardColumn;
+            tableu[i] = newCardColumn;
         }
+        //Init Stock
+        this.stockPile = shuffler.DrawCards(shuffler.GetRemainigCardsCount());
+        //Init Foundation Piles
+        this.suit_to_foundationPile = new Dictionary<Suit, List<Card>>();
+        foreach(Suit suit in Enum.GetValues(typeof(Suit))){
+            this.suit_to_foundationPile[suit] = new List<Card>();
+        }
+    }
+
+    public List<Card> GetFoundationPile(Suit suit){
+        return this.suit_to_foundationPile[suit];
     }
 }
