@@ -17,8 +17,10 @@ public class SolitaireGraphics
         {
             float x = (x_padding*i) + (cardWidth/2);
             float y =  (y_padding*2) + cardHeight;
-            Vector2 cardPosition = new Vector2(x,y);
-            tableuPortraitPositions[i] = cardPosition;
+            Vector2 cardPosition_screen = new Vector2(x,y);
+
+            Vector2 cardPosition_world = Camera.main.ScreenToWorldPoint(cardPosition_screen);
+            tableuPortraitPositions[i] = cardPosition_world;
         }
         return tableuPortraitPositions;
     }

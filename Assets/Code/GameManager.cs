@@ -44,6 +44,8 @@ public class GameManager : MonoBehaviour
     [ContextMenu("InitGame")]
     private void InitGame()
     {
+        shuffler = new DeckShuffler();
+
         SetUpTable(columns_count);
         SetUpGraphics(columns_count, x_padding, y_padding);
     }
@@ -59,7 +61,7 @@ public class GameManager : MonoBehaviour
 
     private void SetUpTable(int noOfColumns)
     {
-        if(noOfColumns <= 9){
+        if(noOfColumns > 9){
             throw new Exception("Too Many Columns. Please choose a number <= 9");
         }
 
