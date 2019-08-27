@@ -2,17 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CardStack : MonoBehaviour
+public class CardStack : ICard
 {
-    // Start is called before the first frame update
-    void Start()
+    public List<ICard> cardsAbove = new List<ICard>();
+    public override void AddCard(ICard newCard)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        cardsAbove.Add(newCard);
+        foreach(ICard card in cardsAbove){
+            card.AddCard(newCard);
+        }        
     }
 }

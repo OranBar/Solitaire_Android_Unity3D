@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SingleCard : MonoBehaviour
+public class SingleCard : ICard
 {
-    // Start is called before the first frame update
-    void Start()
+    public override void AddCard(ICard card)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        if(this.cardBelow.isFaceDown == false){
+            CardStack newCardStack = new CardStack();
+            newCardStack.AddCard(this);
+            newCardStack.AddCard(card);
+            // cardBelow.cardAbove = newCardStack;
+        }
+        throw new System.NotImplementedException();
     }
 }

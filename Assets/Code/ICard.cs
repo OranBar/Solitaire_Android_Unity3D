@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ICard : MonoBehaviour
-{
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+public abstract class ICard 
+{
+    public readonly int value;
+    public readonly int suit;
+    public SuitColor suitColor;
+    public ICard cardBelow;
+    public ICard cardAbove;
+    public bool isFaceDown;
+
+    public abstract void AddCard(ICard card);
 }
