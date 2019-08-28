@@ -883,6 +883,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  cardToTableu_animDuration: 0.5
 --- !u!1 &1890013217
 GameObject:
   m_ObjectHideFlags: 0

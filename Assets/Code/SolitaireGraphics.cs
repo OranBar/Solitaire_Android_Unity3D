@@ -17,6 +17,7 @@ public class SolitaireGraphics : MonoBehaviour
     public float faceDown_padding_y, faceUp_padding_y;
 
     public AnimationCurve easeFunction;
+    public float cardToTableu_animDuration = 0.6f;
 //---------------------------
 
     private Transform deckPile;
@@ -136,7 +137,8 @@ public class SolitaireGraphics : MonoBehaviour
                 faceDownCardGo.back.SetActive(true);
                 target_pos.y = target_pos.y - faceDown_padding_y;
                 //PrepareAnimation
-                faceDownCard.transform.DOMove(target_pos, 1.5f).SetDelay(anim_delay);//.SetEase(easeFunction).OnComplete(()=>Debug.Log("Tween complete"));
+                faceDownCard.transform.DOMove(target_pos, cardToTableu_animDuration).SetDelay(anim_delay);
+                    
                 anim_delay += 0.15f;
             }
             //FaceUp Cards
