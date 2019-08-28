@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
     //public something stock;
     public DeckShuffler shuffler;
 
+    public float faceDown_padding_y, faceUp_padding_y;
 
     void Awake()
     {
@@ -51,6 +52,14 @@ public class GameManager : MonoBehaviour
         
     }
 
+    private GameObject InstantiateCardAndScale(Vector2 suggestedCardSize, Vector2 pos){
+        var newGo = GameObject.Instantiate(cardPrefab, pos, Quaternion.identity);
+        var cardGo = newGo.GetComponent<CardGO>();
+        var multiplier = (suggestedCardSize.x) / (cardGo.mainSpriteRenderer.size.x);
+        newGo.transform.localScale = (newGo.transform.localScale) * (multiplier);
+        return newGo;
+    }
+
     private void SetUpGraphics(int noOfColumns, int x_padding, int y_padding)
     {
         SolitaireGraphics graphics = new SolitaireGraphics();
@@ -60,12 +69,20 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < this.tableu.Length; i++)
         {
             var pos = positions[i];
+
+            for(int ii = 0; ii<i; ii++){
+                var faceDownCard = this.InstantiateCardAndScale(suggestedCardSize, pos);
+                CardGO faceDownCardGo = faceDownCard.GetComponent<CardGO>();
+                
+                faceDownCardGo.front.SetActive(false);
+                faceDownCardGo.back.SetActive(true);
+                pos.y = pos.y - faceDown_padding_y;
+            }
+
             Card card = this.tableu[i].GetTopCard();
 
-            var newGo = GameObject.Instantiate(cardPrefab, pos, Quaternion.identity);
-            var cardGo = newGo.GetComponent<CardGO>();
-            var multiplier = (suggestedCardSize.x) / (cardGo.mainSpriteRenderer.size.x);
-            newGo.transform.localScale = (newGo.transform.localScale) * (multiplier);
+            var newGo = this.InstantiateCardAndScale(suggestedCardSize, pos);
+            CardGO cardGo = newGo.GetComponent<CardGO>();
 
             cardGo.front.SetActive(true);
             cardGo.back.SetActive(false);
