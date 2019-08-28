@@ -65,7 +65,7 @@ public class SolitaireGraphics : MonoBehaviour
         return tableuPortraitPositions;
     }
 
-    public float ScreenSpace_To_WorldSpace(int noOfPixels){
+    public static float ScreenSpace_To_WorldSpace(int noOfPixels){
         Vector2 result = Camera.main.ScreenToWorldPoint(new Vector2(noOfPixels, 0)) - Camera.main.ScreenToWorldPoint(Vector2.zero);
         return result.x;
     }
@@ -90,18 +90,21 @@ public class SolitaireGraphics : MonoBehaviour
     public void SetUpGraphics(GameManager gameManager)
     {
         Sequence animSequence = DOTween.Sequence();
-
+        //Create cards container
         int columns_count = gameManager.columns_count;
         Transform cardsContainer = new GameObject("Cards Container").transform;
-
+        
+        //Compute tableu positions
         Vector2 suggestedCardSize = ComputeCardSize_WorldSpace(columns_count, x_padding, y_padding);
         var y_padding_worldSpace = ScreenSpace_To_WorldSpace(y_padding);
 
         Vector2[] positions = ComputePortraitPositions(columns_count, x_padding, y_padding);
 
+        //Compute TopBarOffset
         float topBarSize = topBar.sizeDelta.y * topBar.parent.GetComponent<Canvas>().scaleFactor;
         Vector2 topBarOffset = new Vector2(0, ScreenSpace_To_WorldSpace((int)topBarSize));
 
+        //Init deck pile object
         Suit[] suits = Enum.GetValues(typeof(Suit)) as Suit[];
 
         var deckPile_pos = positions.Last() - topBarOffset;
@@ -114,6 +117,7 @@ public class SolitaireGraphics : MonoBehaviour
         deckCardGo.front.SetActive(false);
         deckCardGo.back.SetActive(true);
 
+        //Place cards on tableu with animations
         float anim_delay = 0f;
 
         for (int i = 0; i < gameManager.tableu.Length; i++)
@@ -128,6 +132,7 @@ public class SolitaireGraphics : MonoBehaviour
                 foundationPileGo.GetComponent<CardGO>().bigSuit.sprite = SpritesProvider.LoadSuitSprite(suits[i]);
             }
             
+            CardGO[] cardPile = new CardGO[i];
             //FaceDown Card Piles
             for(int ii = 0; ii<i; ii++){
                 var faceDownCard = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
@@ -135,14 +140,22 @@ public class SolitaireGraphics : MonoBehaviour
                 faceDownCard.transform.parent = cardsContainer;
 
                 CardGO faceDownCardGo = faceDownCard.GetComponent<CardGO>();
-                
+                faceDownCardGo.isFaceUp = false;
+
+                //Reference card below and above
+                cardPile[ii] = faceDownCardGo;
+                if(ii > 0){
+                    cardPile[ii].cardBelow = cardPile[ii-1];
+                    cardPile[ii-1].cardAbove = cardPile[ii];
+                }
+
                 FixCardSortingLayers(faceDownCard, ii);
 
                 faceDownCardGo.front.SetActive(false);
                 faceDownCardGo.back.SetActive(true);
-                target_pos.y = target_pos.y - faceDown_padding_y;
-                //PrepareAnimation
                 
+                //PrepareAnimation
+                target_pos.y = target_pos.y - faceDown_padding_y;
                 faceDownCard.transform.DOMove(target_pos, cardToTableu_animDuration).SetDelay(anim_delay);
                 
                 anim_delay += 0.15f;
@@ -155,6 +168,7 @@ public class SolitaireGraphics : MonoBehaviour
             newGo.transform.parent = cardsContainer;
 
             CardGO cardGo = newGo.GetComponent<CardGO>();
+            cardGo.isFaceUp = true;
 
             FixCardSortingLayers(newGo, i);
 
@@ -179,14 +193,6 @@ public class SolitaireGraphics : MonoBehaviour
 
             anim_delay +=0.15f;
         }
-        
-        // foreach(var pos in positions){
-        //     var newGo = GameObject.Instantiate(cardPrefab, pos, Quaternion.identity);
-            
-        //     var multiplier = (suggestedCardSize.x) / (newGo.GetComponent<CardGO>().mainSpriteRenderer.size.x);
-        //     newGo.transform.localScale = (newGo.transform.localScale) * (multiplier);
-            
-        // }
     }
 
 }

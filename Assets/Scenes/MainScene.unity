@@ -746,16 +746,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2879556805980219120, guid: fc9ad7a708e05704ba134ca6d0e2e507,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2879556807225881243, guid: fc9ad7a708e05704ba134ca6d0e2e507,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fc9ad7a708e05704ba134ca6d0e2e507, type: 3}
 --- !u!1 &1449731565
@@ -840,7 +830,7 @@ MonoBehaviour:
   x_padding: 10
   y_padding: 30
   faceDown_padding_y: 0.17
-  faceUp_padding_y: 0
+  faceUp_padding_y: 0.22
   easeFunction:
     serializedVersion: 2
     m_Curve:
@@ -883,7 +873,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  cardToTableu_animDuration: 0.5
+  cardToTableu_animDuration: 0.3
 --- !u!1 &1890013217
 GameObject:
   m_ObjectHideFlags: 0
