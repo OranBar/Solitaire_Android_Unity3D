@@ -64,6 +64,8 @@ public class GameManager : MonoBehaviour
 
     private void SetUpGraphics(int noOfColumns, int x_padding, int y_padding)
     {
+        Transform cardsContainer = new GameObject("Cards Container").transform;
+
         SolitaireGraphics graphics = new SolitaireGraphics();
         Vector2 suggestedCardSize = graphics.ComputeCardSize_WorldSpace(noOfColumns, x_padding, y_padding);
         var y_padding_worldSpace = graphics.ScreenSpace_To_WorldSpace(y_padding);
@@ -81,10 +83,14 @@ public class GameManager : MonoBehaviour
             //Foundation Piles
             if(i < 4){
                 var foundationPileGo = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, pos + new Vector2(0, y_padding_worldSpace + suggestedCardSize.y) );
+                foundationPileGo.name = "Foundation_"+suits[i].ToString();
+                foundationPileGo.transform.parent = cardsContainer;
                 foundationPileGo.GetComponent<CardGO>().bigSuit.sprite = SpritesProvider.LoadSuitSprite(suits[i]);
             }
-            else if(i == noOfColumns){
-                var deckPileGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, pos - new Vector2(0,y_padding_worldSpace));
+            else if(i == noOfColumns-1){
+                var deckPileGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, pos + new Vector2(0, y_padding_worldSpace + suggestedCardSize.y));
+                deckPileGo.name = "DeckPile";
+                deckPileGo.transform.parent = cardsContainer; 
                 var deckCardGo = deckPileGo.GetComponent<CardGO>();
                 deckCardGo.front.SetActive(false);
                 deckCardGo.back.SetActive(true);
@@ -93,25 +99,36 @@ public class GameManager : MonoBehaviour
             //FaceDown Card Piles
             for(int ii = 0; ii<i; ii++){
                 var faceDownCard = this.InstantiateAndScale(cardPrefab, suggestedCardSize, pos);
+                faceDownCard.transform.parent = cardsContainer;
+                faceDownCard.transform.parent = cardsContainer;
+
                 CardGO faceDownCardGo = faceDownCard.GetComponent<CardGO>();
                 
+                foreach(var cardObj_child in faceDownCard.transform.GetAllChildren(true)){
+                    var spriteRenderer = cardObj_child.GetComponent<SpriteRenderer>();
+                    if(spriteRenderer != null){
+                        spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + ii;
+                    }
+                }
                 faceDownCardGo.front.SetActive(false);
                 faceDownCardGo.back.SetActive(true);
                 pos.y = pos.y - faceDown_padding_y;
             }
-            //FaceUp Card
-            Card card = this.tableu[i].GetTopCard();
+            // //FaceUp Cards
+            // Card card = this.tableu[i].GetTopCard();
 
-            var newGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, pos);
-            CardGO cardGo = newGo.GetComponent<CardGO>();
+            // var newGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, pos);
+            // newGo.transform.parent = cardsContainer;
 
-            cardGo.front.SetActive(true);
-            cardGo.back.SetActive(false);
+            // CardGO cardGo = newGo.GetComponent<CardGO>();
 
-            Sprite suitSprite = SpritesProvider.LoadSuitSprite(card.suit);
-            cardGo.bigSuit.sprite = suitSprite;
-            cardGo.smallSuit.sprite = suitSprite;
-            cardGo.value.sprite = SpritesProvider.LoadValueSprite(card.value);
+            // cardGo.front.SetActive(true);
+            // cardGo.back.SetActive(false);
+
+            // Sprite suitSprite = SpritesProvider.LoadSuitSprite(card.suit);
+            // cardGo.bigSuit.sprite = suitSprite;
+            // cardGo.smallSuit.sprite = suitSprite;
+            // cardGo.value.sprite = SpritesProvider.LoadValueSprite(card.value);
         }
         
         // foreach(var pos in positions){
