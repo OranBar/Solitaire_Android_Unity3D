@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class SolitaireGraphics : MonoBehaviour
 {
@@ -14,7 +16,10 @@ public class SolitaireGraphics : MonoBehaviour
     public int y_padding = 50;
     public float faceDown_padding_y, faceUp_padding_y;
 
+    public AnimationCurve easeFunction;
 //---------------------------
+
+    private Transform deckPile;
 
     public Vector2 ComputeCardSize_ScreenSpace(int noOfColumns, int x_padding, int y_padding){
         int screenWidth = Camera.main.pixelWidth;
@@ -74,6 +79,8 @@ public class SolitaireGraphics : MonoBehaviour
 
     public void SetUpGraphics(GameManager gameManager)
     {
+        Sequence animSequence = DOTween.Sequence();
+
         int columns_count = gameManager.columns_count;
         Transform cardsContainer = new GameObject("Cards Container").transform;
 
@@ -87,29 +94,33 @@ public class SolitaireGraphics : MonoBehaviour
 
         Suit[] suits = Enum.GetValues(typeof(Suit)) as Suit[];
 
+        var deckPile_pos = positions.Last() - topBarOffset;
+        GameObject deckPileGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile_pos + new Vector2(0, y_padding_worldSpace + suggestedCardSize.y));
+        this.deckPile = deckPileGo.transform;
+        this.deckPile.name = "DeckPile";
+        this.deckPile.transform.parent = cardsContainer; 
+        
+        var deckCardGo = deckPileGo.GetComponent<CardGO>();
+        deckCardGo.front.SetActive(false);
+        deckCardGo.back.SetActive(true);
+
+        float anim_delay = 0f;
+
         for (int i = 0; i < gameManager.tableu.Length; i++)
         {
-            var pos = positions[i] - topBarOffset;
+            var target_pos = positions[i] - topBarOffset;
 
             //Foundation Piles
             if(i < 4){
-                var foundationPileGo = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, pos + new Vector2(0, y_padding_worldSpace + suggestedCardSize.y) );
+                var foundationPileGo = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, target_pos + new Vector2(0, y_padding_worldSpace + suggestedCardSize.y) );
                 foundationPileGo.name = "Foundation_"+suits[i].ToString();
                 foundationPileGo.transform.parent = cardsContainer;
                 foundationPileGo.GetComponent<CardGO>().bigSuit.sprite = SpritesProvider.LoadSuitSprite(suits[i]);
             }
-            else if(i == columns_count-1){
-                var deckPileGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, pos + new Vector2(0, y_padding_worldSpace + suggestedCardSize.y));
-                deckPileGo.name = "DeckPile";
-                deckPileGo.transform.parent = cardsContainer; 
-                var deckCardGo = deckPileGo.GetComponent<CardGO>();
-                deckCardGo.front.SetActive(false);
-                deckCardGo.back.SetActive(true);
-            }
-
+            
             //FaceDown Card Piles
             for(int ii = 0; ii<i; ii++){
-                var faceDownCard = this.InstantiateAndScale(cardPrefab, suggestedCardSize, pos);
+                var faceDownCard = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
                 faceDownCard.transform.parent = cardsContainer;
                 faceDownCard.transform.parent = cardsContainer;
 
@@ -123,23 +134,34 @@ public class SolitaireGraphics : MonoBehaviour
                 }
                 faceDownCardGo.front.SetActive(false);
                 faceDownCardGo.back.SetActive(true);
-                pos.y = pos.y - faceDown_padding_y;
+                target_pos.y = target_pos.y - faceDown_padding_y;
+                //PrepareAnimation
+                faceDownCard.transform.DOMove(target_pos, 1.5f).SetDelay(anim_delay);//.SetEase(easeFunction).OnComplete(()=>Debug.Log("Tween complete"));
+                anim_delay += 0.15f;
             }
-            // //FaceUp Cards
-            // Card card = this.tableu[i].GetTopCard();
+            //FaceUp Cards
+            Card card = gameManager.tableu[i].GetTopCard();
 
-            // var newGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, pos);
-            // newGo.transform.parent = cardsContainer;
+            var newGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
+            newGo.transform.parent = cardsContainer;
 
-            // CardGO cardGo = newGo.GetComponent<CardGO>();
+            CardGO cardGo = newGo.GetComponent<CardGO>();
 
-            // cardGo.front.SetActive(true);
-            // cardGo.back.SetActive(false);
+            cardGo.front.SetActive(false);
+            cardGo.back.SetActive(true);
 
-            // Sprite suitSprite = SpritesProvider.LoadSuitSprite(card.suit);
-            // cardGo.bigSuit.sprite = suitSprite;
-            // cardGo.smallSuit.sprite = suitSprite;
-            // cardGo.value.sprite = SpritesProvider.LoadValueSprite(card.value);
+            Sprite suitSprite = SpritesProvider.LoadSuitSprite(card.suit);
+            cardGo.bigSuit.sprite = suitSprite;
+            cardGo.smallSuit.sprite = suitSprite;
+            cardGo.value.sprite = SpritesProvider.LoadValueSprite(card.value);
+            
+            //PrepareAnimation
+            // Sequence moveAndTurnSequence = DOTween.Sequence();
+            // moveAndTurnSequence
+            //     .Append(newGo.transform.DOMove(target_pos, 1).SetEase(easeFunction))
+            //     .Append(newGo.transform.DORotate(new Vector3(0,-90,0), 0.5f))
+            //         .OnComplete(()=> {cardGo.front.SetActive(true); cardGo.back.SetActive(false);})
+            //     .Append(newGo.transform.DORotate(new Vector3(0,-180,0), 0.5f));
         }
         
         // foreach(var pos in positions){
@@ -150,6 +172,5 @@ public class SolitaireGraphics : MonoBehaviour
             
         // }
     }
-
 
 }

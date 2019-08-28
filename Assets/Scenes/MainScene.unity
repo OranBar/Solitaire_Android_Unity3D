@@ -746,6 +746,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2879556805980219120, guid: fc9ad7a708e05704ba134ca6d0e2e507,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2879556807225881243, guid: fc9ad7a708e05704ba134ca6d0e2e507,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fc9ad7a708e05704ba134ca6d0e2e507, type: 3}
 --- !u!1 &1449731565
@@ -780,16 +790,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   graphics: {fileID: 1449731569}
-  cardPrefab: {fileID: 2879556806617992131, guid: fc9ad7a708e05704ba134ca6d0e2e507,
-    type: 3}
-  foundationPilePrefab: {fileID: 2710212587560169892, guid: feff5e6e256980143a777f9b617857c2,
-    type: 3}
-  topBarHeight: 85
-  x_padding: 10
-  y_padding: 30
   columns_count: 7
-  faceDown_padding_y: 0.14
-  faceUp_padding_y: 0
 --- !u!4 &1449731567
 Transform:
   m_ObjectHideFlags: 0
@@ -840,6 +841,48 @@ MonoBehaviour:
   y_padding: 30
   faceDown_padding_y: 0.17
   faceUp_padding_y: 0
+  easeFunction:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.43026733
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.20003323
+      value: 0.27451718
+      inSlope: 0.39751965
+      outSlope: 0.39751965
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.79616857
+      value: 1.644355
+      inSlope: 1.8767735
+      outSlope: 1.8767735
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1.4302673
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1890013217
 GameObject:
   m_ObjectHideFlags: 0
