@@ -78,6 +78,15 @@ public class SolitaireGraphics : MonoBehaviour
         return newGo;
     }
 
+    private void FixCardSortingLayers(GameObject cardGo, int cardsBelow){
+        foreach(var cardObj_child in cardGo.transform.GetAllChildren(true)){
+            var spriteRenderer = cardObj_child.GetComponent<SpriteRenderer>();
+            if(spriteRenderer != null){
+                spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + cardsBelow;
+            }
+        }
+    }
+
     public void SetUpGraphics(GameManager gameManager)
     {
         Sequence animSequence = DOTween.Sequence();
@@ -127,27 +136,27 @@ public class SolitaireGraphics : MonoBehaviour
 
                 CardGO faceDownCardGo = faceDownCard.GetComponent<CardGO>();
                 
-                foreach(var cardObj_child in faceDownCard.transform.GetAllChildren(true)){
-                    var spriteRenderer = cardObj_child.GetComponent<SpriteRenderer>();
-                    if(spriteRenderer != null){
-                        spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + ii;
-                    }
-                }
+                FixCardSortingLayers(faceDownCard, ii);
+
                 faceDownCardGo.front.SetActive(false);
                 faceDownCardGo.back.SetActive(true);
                 target_pos.y = target_pos.y - faceDown_padding_y;
                 //PrepareAnimation
+                
                 faceDownCard.transform.DOMove(target_pos, cardToTableu_animDuration).SetDelay(anim_delay);
-                    
+                
                 anim_delay += 0.15f;
             }
             //FaceUp Cards
             Card card = gameManager.tableu[i].GetTopCard();
 
             var newGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
+            // var newGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, target_pos);
             newGo.transform.parent = cardsContainer;
 
             CardGO cardGo = newGo.GetComponent<CardGO>();
+
+            FixCardSortingLayers(newGo, i);
 
             cardGo.front.SetActive(false);
             cardGo.back.SetActive(true);
@@ -157,13 +166,18 @@ public class SolitaireGraphics : MonoBehaviour
             cardGo.smallSuit.sprite = suitSprite;
             cardGo.value.sprite = SpritesProvider.LoadValueSprite(card.value);
             
+            target_pos.y = target_pos.y - faceDown_padding_y;
+
             //PrepareAnimation
-            // Sequence moveAndTurnSequence = DOTween.Sequence();
-            // moveAndTurnSequence
-            //     .Append(newGo.transform.DOMove(target_pos, 1).SetEase(easeFunction))
-            //     .Append(newGo.transform.DORotate(new Vector3(0,-90,0), 0.5f))
-            //         .OnComplete(()=> {cardGo.front.SetActive(true); cardGo.back.SetActive(false);})
-            //     .Append(newGo.transform.DORotate(new Vector3(0,-180,0), 0.5f));
+            Sequence moveAndTurnSequence = DOTween.Sequence();
+            moveAndTurnSequence
+                .PrependInterval(anim_delay)
+                .Append(newGo.transform.DOMove(target_pos, cardToTableu_animDuration))
+                .Append(newGo.transform.DORotate(new Vector3(0,-90,0), 0.5f)
+                    .OnComplete(()=> {cardGo.front.SetActive(true); cardGo.back.SetActive(false);}))
+                .Append(newGo.transform.DORotate(new Vector3(0,0,0), 0.5f));
+
+            anim_delay +=0.15f;
         }
         
         // foreach(var pos in positions){
