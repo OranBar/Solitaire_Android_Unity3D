@@ -46,4 +46,10 @@ public class SolitaireGraphics
         }
         return tableuPortraitPositions;
     }
+
+
+    public float ScreenSpace_To_WorldSpace(int noOfPixels){
+        Vector2 result = Camera.main.ScreenToWorldPoint(new Vector2(noOfPixels, 0)) - Camera.main.ScreenToWorldPoint(Vector2.zero);
+        return result.x;
+    }
 }

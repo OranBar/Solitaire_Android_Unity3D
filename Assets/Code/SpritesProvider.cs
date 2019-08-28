@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GraphicsProvider 
+public class SpritesProvider 
 {
     public static Sprite LoadSuitSprite(Suit suit){
         switch(suit){
