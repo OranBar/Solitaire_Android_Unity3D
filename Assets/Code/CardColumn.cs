@@ -9,6 +9,10 @@ public class CardColumn
     public Stack<Card> faceDownCards = new Stack<Card>();
     public List<Card> faceUpCards = new List<Card>();
 
+    public Card GetTopCard(){
+        return faceUpCards.Last();
+    }
+
     public void AddCard(List<Card> newCards){
         // foreach(Card card in newCards){
         //     faceUpCards.Add

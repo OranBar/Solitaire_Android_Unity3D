@@ -48,6 +48,7 @@ public class GameManager : MonoBehaviour
 
         SetUpTable(columns_count);
         SetUpGraphics(columns_count, x_padding, y_padding);
+        
     }
 
     private void SetUpGraphics(int noOfColumns, int x_padding, int y_padding)
@@ -55,13 +56,33 @@ public class GameManager : MonoBehaviour
         SolitaireGraphics graphics = new SolitaireGraphics();
         Vector2 suggestedCardSize = graphics.ComputeCardSize_WorldSpace(noOfColumns, x_padding, y_padding);
         Vector2[] positions = graphics.ComputePortraitPositions(noOfColumns, x_padding, y_padding);
-        foreach(var pos in positions){
+        
+        for (int i = 0; i < this.tableu.Length; i++)
+        {
+            var pos = positions[i];
+            Card card = this.tableu[i].GetTopCard();
+
             var newGo = GameObject.Instantiate(cardPrefab, pos, Quaternion.identity);
-            
-            var multiplier = (suggestedCardSize.x) / (newGo.GetComponent<CardGO>().mainSpriteRenderer.size.x);
+            var cardGo = newGo.GetComponent<CardGO>();
+            var multiplier = (suggestedCardSize.x) / (cardGo.mainSpriteRenderer.size.x);
             newGo.transform.localScale = (newGo.transform.localScale) * (multiplier);
-            
+
+            cardGo.front.SetActive(true);
+            cardGo.back.SetActive(false);
+
+            Sprite suitSprite = GraphicsProvider.LoadSuitSprite(card.suit);
+            cardGo.bigSuit.sprite = suitSprite;
+            cardGo.smallSuit.sprite = suitSprite;
+            cardGo.value.sprite = GraphicsProvider.LoadValueSprite(card.value);
         }
+        
+        // foreach(var pos in positions){
+        //     var newGo = GameObject.Instantiate(cardPrefab, pos, Quaternion.identity);
+            
+        //     var multiplier = (suggestedCardSize.x) / (newGo.GetComponent<CardGO>().mainSpriteRenderer.size.x);
+        //     newGo.transform.localScale = (newGo.transform.localScale) * (multiplier);
+            
+        // }
     }
 
     private void SetUpTable(int noOfColumns)
