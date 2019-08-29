@@ -19,7 +19,7 @@ public class CardGO : MonoBehaviour
     public bool isFaceUp;
 
     
-    private Vector2 offsetToCardAbove;
+    private Vector3 offsetToCardAbove;
 
     void Awake()
     {
@@ -27,29 +27,42 @@ public class CardGO : MonoBehaviour
         mySpriteRenderers = new List<SpriteRenderer>();
         foreach(var cardObj_child in this.transform.GetAllChildren(true)){
             var spriteRenderer = cardObj_child.GetComponent<SpriteRenderer>();
-            mySpriteRenderers.Add(spriteRenderer);
+            if(spriteRenderer != null){
+                mySpriteRenderers.Add(spriteRenderer);
+            }
         }
 
-        offsetToCardAbove = new Vector2(0, GameObject.FindObjectOfType<SolitaireGraphics>().faceUp_padding_y);
+        offsetToCardAbove = new Vector3(0, GameObject.FindObjectOfType<SolitaireGraphics>().faceUp_padding_y, 0);
+    }
+    
+    void OnMouseDown()
+    {
+        if(isFaceUp){
+            ChangeSortingLayer_Recursive("Selectedcards");
+        }
     }
 
-    float x,y;
-    Vector2 currentVelocity;
-    bool isBeingDragged = false;
+    void OnMouseUp()
+    {
+        if(isFaceUp){
+            ChangeSortingLayer_Recursive("Default");
+        }
+    }
+    Vector3 currentVelocity;
 
     private void OnMouseDrag()
     {
-        Vector2 targetPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 targetPosition2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 targetPosition = new Vector3(targetPosition2D.x, targetPosition2D.y, this.transform.position.z);
 
-        // transform.position = Vector2.SmoothDamp(transform.position, targetPosition, ref currentVelocity, .2f);
-        if(!isFaceUp){
+        if(isFaceUp){
             MoveTowardsPoint_Recursive(targetPosition, moveSpeed);
         }
     }
 
-    private void MoveTowardsPoint_Recursive(Vector2 targetPosition, float speed){
+    private void MoveTowardsPoint_Recursive(Vector3 targetPosition, float speed){
         //TODO: try adding deltaTime
-        transform.position = Vector2.SmoothDamp(transform.position, targetPosition, ref currentVelocity, speed * Time.deltaTime);
+        transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref currentVelocity, speed * Time.deltaTime);
         if(cardAbove != null){
             cardAbove.MoveTowardsPoint_Recursive(targetPosition - offsetToCardAbove, speed * 1.5f);
         }
@@ -61,5 +74,17 @@ public class CardGO : MonoBehaviour
         }
     }
 
+    public void ChangeSortingLayer(string newLayerName){
+        foreach(var spriteRenderer in mySpriteRenderers){
+            spriteRenderer.sortingLayerName = newLayerName;
+        }
+    }
+
+    public void ChangeSortingLayer_Recursive(string newLayerName){
+        ChangeSortingLayer(newLayerName);
+        if(this.cardAbove != null){
+            this.cardAbove.ChangeSortingLayer_Recursive(newLayerName);
+        }
+    }
     
 }
