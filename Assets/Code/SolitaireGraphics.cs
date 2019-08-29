@@ -45,8 +45,8 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
     }
 
     public Vector2 ComputeCardSize_WorldSpace(int noOfColumns, int x_padding, int y_padding){
-        var tmp = ComputeCardSize_ScreenSpace(noOfColumns, x_padding, y_padding);
-        Vector2 suggestedCardSize = Camera.main.ScreenToWorldPoint(tmp) - Camera.main.ScreenToWorldPoint(Vector2.zero);
+        var cardSize = ComputeCardSize_ScreenSpace(noOfColumns, x_padding, y_padding);
+        Vector2 suggestedCardSize = Camera.main.ScreenToWorldPoint(cardSize) - Camera.main.ScreenToWorldPoint(Vector2.zero);
         return suggestedCardSize;
     }
 
@@ -200,21 +200,38 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
         }
     }
 
-    public int GetClosestColumn(float xCoordinate){
+    public static int INVALID_COLUMN = -6;
+
+    public int GetClosestColumn(Vector2 releasedCardPosition){
         float minDistance = float.MaxValue;
         int closestColumnToPoint = -1;
 
         for (int i = 0; i < this.tableuPositions.Length; i++)
         {
             var pos = tableuPositions[i];
-            float distance = Mathf.Abs(xCoordinate - pos.x);
+            float distance = Mathf.Abs(releasedCardPosition.x - pos.x);
             if(distance < minDistance){
                 minDistance = distance;
                 closestColumnToPoint = i;
             }
         }
 
-        return closestColumnToPoint;
+        Vector2 cardSize_worldSpace = this.ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
+        // float aboveTableu_YCoord = this.deckPile.position.y - (cardSize_worldSpace.y/2f);
+        float aboveTableu_YCoord = this.tableuPositions[0].y - (cardSize_worldSpace.y);
+
+        if(releasedCardPosition.y > aboveTableu_YCoord){
+            //We are trying to place on foundation pile
+            if(closestColumnToPoint < 4){
+                return -(closestColumnToPoint+1);
+            } else {
+                return INVALID_COLUMN;  //Means invalid column
+            }
+        } else{ 
+            // We are trying to place on tableu
+            return closestColumnToPoint;
+        }
+
     }
 
 }

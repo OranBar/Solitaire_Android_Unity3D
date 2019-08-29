@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class GameManager : MonoBehaviour
+public class GameManager : Singleton<GameManager>
 {
 //---------------------------
     public SolitaireGraphics graphics;
@@ -18,11 +18,9 @@ public class GameManager : MonoBehaviour
     //public something stock;
     public DeckShuffler shuffler;
 
+    public List<Move> movesHistory;
 
-    void Awake()
-    {
-         
-    }
+    protected override void InitTon(){ }
 
     // Start is called before the first frame update
     void Start()
@@ -71,9 +69,13 @@ public class GameManager : MonoBehaviour
 
             List<Card> faceDownCards = shuffler.DrawCards(i);
             newCardColumn.faceDownCards = new Stack<Card>(faceDownCards);
+            foreach(var card in faceDownCards){
+                card.column = i;
+            }
 
-            List<Card> faceUpcard = shuffler.DrawCards(1);
-            newCardColumn.faceUpCards = faceUpcard;
+            List<Card> faceUpCard = shuffler.DrawCards(1);
+            newCardColumn.faceUpCards = faceUpCard;
+            faceUpCard[0].column = i;
 
             tableu[i] = newCardColumn;
         }
@@ -89,4 +91,23 @@ public class GameManager : MonoBehaviour
     public List<Card> GetFoundationPile(Suit suit){
         return this.suit_to_foundationPile[suit];
     }
+
+    public void NotifyCardDropped(Card card, int targetColumn){
+        CardColumn targetCardColumn = this.tableu[targetColumn];
+        Card columnCard = targetCardColumn.faceUpCards.Last();
+        if(IsLegalMove(card, columnCard)){
+            //Create move. 
+            //Store move in history
+        }
+    }
+
+    public bool IsLegalMove(Card draggedCard, Card destinationCard){
+        if(draggedCard.suitColor != destinationCard.suitColor){
+            if(destinationCard.value == (draggedCard.value + 1)){
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

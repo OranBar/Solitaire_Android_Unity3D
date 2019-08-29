@@ -56,8 +56,7 @@ public class CardView : MonoBehaviour
             ChangeSortingLayer_Recursive("Default");
         }
 
-        // int xPixelPosition = (int) Camera.main.WorldToScreenPoint(this.transform.position).x;
-        int closestColumn = SolitaireGraphics.Instance.GetClosestColumn(this.transform.position.x);
+        int closestColumn = SolitaireGraphics.Instance.GetClosestColumn(this.transform.position);
         Debug.Log("Closest Column is "+closestColumn);
     }
 

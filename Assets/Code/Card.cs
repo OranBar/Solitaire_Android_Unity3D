@@ -35,6 +35,7 @@ public class Card
     public readonly int value;
     public readonly Suit suit;
     public readonly SuitColor suitColor;
+    public int column = -1;
 
     public Card(int value, Suit suit)
     {
