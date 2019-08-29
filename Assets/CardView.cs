@@ -55,7 +55,12 @@ public class CardView : MonoBehaviour
         if(isFaceUp){
             ChangeSortingLayer_Recursive("Default");
         }
+
+        // int xPixelPosition = (int) Camera.main.WorldToScreenPoint(this.transform.position).x;
+        int closestColumn = SolitaireGraphics.Instance.GetClosestColumn(this.transform.position.x);
+        Debug.Log("Closest Column is "+closestColumn);
     }
+
     Vector3 currentVelocity;
 
     private void OnMouseDrag()

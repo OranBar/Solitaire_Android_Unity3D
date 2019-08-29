@@ -873,8 +873,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  cardToTableu_animDuration: 0.3
-  flipSpeed: 0.6
+  cardToTableu_animDuration: 0.15
+  flipSpeed: 0.4
 --- !u!1 &1890013217
 GameObject:
   m_ObjectHideFlags: 0

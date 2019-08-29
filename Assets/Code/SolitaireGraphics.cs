@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine.UI;
 using DG.Tweening;
 
-public class SolitaireGraphics : MonoBehaviour
+public class SolitaireGraphics : Singleton<SolitaireGraphics>
 {
 //---------------------------
     public GameObject cardPrefab, foundationPilePrefab;
@@ -20,8 +20,12 @@ public class SolitaireGraphics : MonoBehaviour
     public float flipSpeed = 0.6f;
 
 //---------------------------
+    
+    protected override void InitTon(){ }
+
 
     private Transform deckPile;
+    private Vector3[] tableuPositions;
 
     public Vector2 ComputeCardSize_ScreenSpace(int noOfColumns, int x_padding, int y_padding){
         int screenWidth = Camera.main.pixelWidth;
@@ -90,7 +94,7 @@ public class SolitaireGraphics : MonoBehaviour
         Vector2 suggestedCardSize = ComputeCardSize_WorldSpace(columns_count, x_padding, y_padding);
         var y_padding_worldSpace = ScreenSpace_To_WorldSpace(y_padding);
 
-        Vector3[] positions = ComputePortraitPositions(columns_count, x_padding, y_padding);
+        tableuPositions = ComputePortraitPositions(columns_count, x_padding, y_padding);
 
         //Compute TopBarOffset
         float topBarSize = topBar.sizeDelta.y * topBar.parent.GetComponent<Canvas>().scaleFactor;
@@ -99,7 +103,7 @@ public class SolitaireGraphics : MonoBehaviour
         //Init deck pile object
         Suit[] suits = Enum.GetValues(typeof(Suit)) as Suit[];
 
-        var deckPile_pos = positions.Last() - topBarOffset;
+        var deckPile_pos = tableuPositions.Last() - topBarOffset;
         GameObject deckPileGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y,0));
         this.deckPile = deckPileGo.transform;
         this.deckPile.name = "DeckPile";
@@ -114,7 +118,7 @@ public class SolitaireGraphics : MonoBehaviour
 
         for (int i = 0; i < gameManager.tableu.Length; i++)
         {
-            var target_pos = positions[i] - topBarOffset;
+            var target_pos = tableuPositions[i] - topBarOffset;
 
             //Foundation Piles
             if(i < 4){
@@ -194,6 +198,23 @@ public class SolitaireGraphics : MonoBehaviour
 
             anim_delay +=0.15f;
         }
+    }
+
+    public int GetClosestColumn(float xCoordinate){
+        float minDistance = float.MaxValue;
+        int closestColumnToPoint = -1;
+
+        for (int i = 0; i < this.tableuPositions.Length; i++)
+        {
+            var pos = tableuPositions[i];
+            float distance = Mathf.Abs(xCoordinate - pos.x);
+            if(distance < minDistance){
+                minDistance = distance;
+                closestColumnToPoint = i;
+            }
+        }
+
+        return closestColumnToPoint;
     }
 
 }
