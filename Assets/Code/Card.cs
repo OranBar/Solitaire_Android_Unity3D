@@ -24,9 +24,10 @@ static class SuitMethods
         }
         else if(s1 == Suit.Clubs || s1 == Suit.Spades){
             return SuitColor.Black;
-        }else{
-            throw new Exception("Can't identify suit color. Did you add Jollys?");
         }
+
+        throw new Exception("Can't identify suit color. Did you add Jollys?");
+        
     }
 }
 
@@ -42,6 +43,22 @@ public class Card
         this.value = value;
         this.suit = suit;
         this.suitColor = suit.GetSuitColor();
+    }
+
+    public override string ToString(){
+        
+        return CardValueToString(value)+""+suit.ToString();
+    }
+
+
+    public static string CardValueToString(int value){
+        switch(value){
+            case 1: return "A"; 
+            case 11: return "J"; 
+            case 12: return "Q"; 
+            case 13: return "K"; 
+            default: return value.ToString();
+        }
     }
 }
 

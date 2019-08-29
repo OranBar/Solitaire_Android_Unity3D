@@ -779,7 +779,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53f1997ed1ae72c4ba812d8782e1d2e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  graphics: {fileID: 1449731569}
   columns_count: 7
 --- !u!4 &1449731567
 Transform:
@@ -830,7 +829,7 @@ MonoBehaviour:
   x_padding: 10
   y_padding: 30
   faceDown_padding_y: 0.17
-  faceUp_padding_y: 0.22
+  faceUp_padding_y: 0.32
   easeFunction:
     serializedVersion: 2
     m_Curve:

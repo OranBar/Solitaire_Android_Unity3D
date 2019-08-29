@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine.UI;
 using DG.Tweening;
 
-public class SolitaireGraphics : Singleton<SolitaireGraphics>
+public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphics
 {
 //---------------------------
     public GameObject cardPrefab, foundationPilePrefab;
@@ -26,6 +26,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
 
     private Transform deckPile;
     private Vector3[] tableuPositions;
+    private Dictionary<Card, CardView> cardData_to_cardView = new Dictionary<Card, CardView>();
 
     public Vector2 ComputeCardSize_ScreenSpace(int noOfColumns, int x_padding, int y_padding){
         int screenWidth = Camera.main.pixelWidth;
@@ -76,18 +77,19 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
     }
 
     private GameObject InstantiateAndScale(GameObject prefab, Vector2 suggestedCardSize, Vector3 pos){
-        var newGo = GameObject.Instantiate(prefab, pos, Quaternion.identity);
-        var cardView = newGo.GetComponent<CardView>();
+        var newGO = GameObject.Instantiate(prefab, pos, Quaternion.identity);
+        var cardView = newGO.GetComponent<CardView>();
         var multiplier = (suggestedCardSize.x) / (cardView.mainSpriteRenderer.size.x);
-        newGo.transform.localScale = (newGo.transform.localScale) * (multiplier);
-        return newGo;
+        newGO.transform.localScale = (newGO.transform.localScale) * (multiplier);
+        return newGO;
     }
 
-    public void SetUpGraphics(GameManager gameManager)
+    public void SetupGraphics(CardColumn[] tableu, List<Card> stockPile)
     {
+
         Sequence animSequence = DOTween.Sequence();
         //Create cards container
-        int columns_count = gameManager.columns_count;
+        int columns_count = tableu.Length;
         Transform cardsContainer = new GameObject("Cards Container").transform;
         
         //Compute tableu positions
@@ -97,19 +99,18 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
         tableuPositions = ComputePortraitPositions(columns_count, x_padding, y_padding);
 
         //Compute TopBarOffset
-        float topBarSize = topBar.sizeDelta.y * topBar.parent.GetComponent<Canvas>().scaleFactor;
-        Vector3 topBarOffset = new Vector3(0, ScreenSpace_To_WorldSpace((int)topBarSize), 0);
+        Vector3 topBarOffset = ComputeTopBarOffset();
 
         //Init deck pile object
         Suit[] suits = Enum.GetValues(typeof(Suit)) as Suit[];
 
         var deckPile_pos = tableuPositions.Last() - topBarOffset;
-        GameObject deckPileGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y,0));
-        this.deckPile = deckPileGo.transform;
+        GameObject deckPileGO = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y,0));
+        this.deckPile = deckPileGO.transform;
         this.deckPile.name = "DeckPile";
         this.deckPile.transform.parent = cardsContainer; 
         
-        var deckcardView = deckPileGo.GetComponent<CardView>();
+        var deckcardView = deckPileGO.GetComponent<CardView>();
         deckcardView.front.SetActive(false);
         deckcardView.back.SetActive(true);
 
@@ -117,29 +118,31 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
         float anim_delay = 0f;
 
         // Loop tableu columns 1 by 1
-        for (int i = 0; i < gameManager.tableu.Length; i++)
+        for (int i = 0; i < tableu.Length; i++)
         {
             var target_pos = tableuPositions[i] - topBarOffset;
 
             //Foundation Pile
             if(i < 4){
-                var foundationPileGo = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, target_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y,0) );
-                foundationPileGo.name = "Foundation_"+suits[i].ToString();
-                foundationPileGo.transform.parent = cardsContainer;
-                foundationPileGo.GetComponent<CardView>().bigSuit.sprite = SpritesProvider.LoadSuitSprite(suits[i]);
+                var foundationPileGO = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, target_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y,0) );
+                foundationPileGO.name = "Foundation_"+suits[i].ToString();
+                foundationPileGO.transform.parent = cardsContainer;
+                foundationPileGO.GetComponent<CardView>().bigSuit.sprite = SpritesProvider.LoadSuitSprite(suits[i]);
             }
             
             CardView[] cardPile = new CardView[i];
             //FaceDown Card Pile
-            List<Card> faceDownCards_data = new List<Card>(gameManager.tableu[i].faceDownCards);
+            List<Card> faceDownCards_data = new List<Card>(tableu[i].faceDownCards);
             for(int ii = 0; ii<i; ii++){
-                var faceDownCardGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
-                faceDownCardGo.transform.parent = cardsContainer;
-                faceDownCardGo.transform.parent = cardsContainer;
+                var faceDownCardGO = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
+                faceDownCardGO.transform.parent = cardsContainer;
+                faceDownCardGO.transform.parent = cardsContainer;
 
-                CardView faceDowncardView = faceDownCardGo.GetComponent<CardView>();
+                CardView faceDowncardView = faceDownCardGO.GetComponent<CardView>();
                 faceDowncardView.isFaceUp = false;
                 faceDowncardView.cardData = faceDownCards_data[ii];
+                this.cardData_to_cardView[faceDowncardView.cardData] = faceDowncardView;
+                faceDownCardGO.name = faceDowncardView.cardData.ToString();
 
                 //Reference card below and above
                 cardPile[ii] = faceDowncardView;
@@ -157,19 +160,21 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
                 //PrepareAnimation
                 target_pos.y = target_pos.y - faceDown_padding_y;
                 target_pos.z = -ii; //If a card is above another, the Z has to reflect that, or the colliders will overlap and steal each others' calls
-                faceDownCardGo.transform.DOMove(target_pos, cardToTableu_animDuration).SetDelay(anim_delay);
+                faceDownCardGO.transform.DOMove(target_pos, cardToTableu_animDuration).SetDelay(anim_delay);
                 
                 anim_delay += 0.15f;
             }
             //FaceUp Cards
-            Card card = gameManager.tableu[i].GetTopCard();
+            Card card = tableu[i].GetTopCard();
 
-            var newGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
-            newGo.transform.parent = cardsContainer;
+            var cardGO = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
+            cardGO.transform.parent = cardsContainer;
 
-            CardView cardView = newGo.GetComponent<CardView>();
+            CardView cardView = cardGO.GetComponent<CardView>();
             cardView.isFaceUp = true;
-            cardView.cardData = gameManager.tableu[i].faceUpCards[0];
+            cardView.cardData = tableu[i].faceUpCards[0];
+            this.cardData_to_cardView[cardView.cardData ] = cardView;
+            cardGO.name = cardView.cardData.ToString();
 
             //Reference card below and above
             if(cardPile.Length > 0){
@@ -195,13 +200,22 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
             Sequence moveAndTurnSequence = DOTween.Sequence();
             moveAndTurnSequence
                 .PrependInterval(anim_delay)
-                .Append(newGo.transform.DOMove(target_pos, cardToTableu_animDuration))
-                .Append(newGo.transform.DORotate(new Vector3(0,-90,0), flipSpeed/2f)
+                .Append(cardGO.transform.DOMove(target_pos, cardToTableu_animDuration))
+                .Append(cardGO.transform.DORotate(new Vector3(0,-90,0), flipSpeed/2f)
                     .OnComplete(()=> {cardView.front.SetActive(true); cardView.back.SetActive(false);}))
-                .Append(newGo.transform.DORotate(new Vector3(0,0,0), flipSpeed/2f));
+                .Append(cardGO.transform.DORotate(new Vector3(0,0,0), flipSpeed/2f));
 
             anim_delay +=0.15f;
+
+            //TODO: Map Deck pile?
         }
+    }
+
+    private Vector3 ComputeTopBarOffset()
+    {
+        float topBarSize = topBar.sizeDelta.y * topBar.parent.GetComponent<Canvas>().scaleFactor;
+        Vector3 topBarOffset = new Vector3(0, ScreenSpace_To_WorldSpace((int)topBarSize), 0);
+        return topBarOffset;
     }
 
     public static int INVALID_COLUMN = -6;
@@ -238,4 +252,54 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
 
     }
 
+    // public void PlaceCard(Card selectedCard, int targetColumn){
+    //     // CardView destinationCardView = this.cardData_to_cardView[destinationCard];
+    //     CardView cardView = this.cardData_to_cardView[selectedCard];
+
+    //     Vector3 targetPos = this.tableuPositions[targetColumn];
+    //     bool isTargetColumnEmpty = GameManager.Instance.tableu[targetColumn].faceUpCards.IsNullOrEmpty();
+    //     if(isTargetColumnEmpty == false){
+    //         CardColumn targetCardColumn = GameManager.Instance.tableu[targetColumn];
+    //         Card destinationCard = taporgetCardColumn.faceUpCards.Last();
+    //         CardView destinationCardView = this.cardData_to_cardView[destinationCard];
+
+    //         targetPos = destinationCardView.transform.position + new Vector3(0,faceUp_padding_y,0);
+    //     }
+
+
+    //     // foreach()
+    // }
+
+    public void MoveCard(Move move){
+        Card selectedCard = move.movedCards.First();
+        int targetColumn = move.destinationCard.column;
+        
+        CardView selectedCardView = this.cardData_to_cardView[selectedCard];
+
+        Vector3 targetPos = this.tableuPositions[targetColumn];
+        bool isTargetColumnEmpty = GameManager.Instance.tableu[targetColumn].faceUpCards.IsNullOrEmpty();
+        if(isTargetColumnEmpty == false){
+            CardColumn targetCardColumn = GameManager.Instance.tableu[targetColumn];
+            Card destinationCard = targetCardColumn.faceUpCards.Last();
+            CardView destinationCardView = this.cardData_to_cardView[destinationCard];
+
+            targetPos = destinationCardView.transform.position - new Vector3(0,faceUp_padding_y,0);
+            // targetPos = destinationCardView.transform.position + new Vector3(0,ScreenSpace_To_WorldSpace((int)faceUp_padding_y),0);
+        }
+
+        //Reuse recursive logic to move the card to the target spot.
+        selectedCardView.MoveToPoint(targetPos);
+
+        //Fix sorting order
+    }
+
+    public void NotifyLegalMove(Move move)
+    {
+        MoveCard(move);
+    }
+
+    public void NotifyIllegalMove(IllegalMove move)
+    {
+        this.cardData_to_cardView[move.card].UndoDrag();
+    }
 }

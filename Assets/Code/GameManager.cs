@@ -7,7 +7,7 @@ using System.Linq;
 public class GameManager : Singleton<GameManager>
 {
 //---------------------------
-    public SolitaireGraphics graphics;
+    public ISolitaireGraphics graphics;
     public int columns_count = 7;
 //---------------------------
 
@@ -18,9 +18,13 @@ public class GameManager : Singleton<GameManager>
     //public something stock;
     public DeckShuffler shuffler;
 
-    public List<Move> movesHistory;
+    public List<Move> movesHistory = new List<Move>();
 
-    protected override void InitTon(){ }
+    protected override void InitTon(){ 
+        graphics = this.GetComponent<ISolitaireGraphics>();
+
+        Debug.Assert(graphics != null, "Couldn't find class implementing the ISolitaireGraphics on GameObject with GameManager component ("+this.gameObject.name+"", this.gameObject);
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -44,15 +48,9 @@ public class GameManager : Singleton<GameManager>
         shuffler = new DeckShuffler();
 
         SetUpTable(columns_count);
-        SetUpGraphics();
-        
+        graphics.SetupGraphics(tableu, stockPile);        
     }
     
-    private void SetUpGraphics()
-    {
-        graphics.SetUpGraphics(this);
-    }
-
     private void SetUpTable(int noOfColumns)
     {
         if(noOfColumns > 9){
@@ -97,9 +95,18 @@ public class GameManager : Singleton<GameManager>
         Card cardToDropOn = targetCardColumn.faceUpCards.Last();
         if(IsLegalMove(selectedCard, cardToDropOn)){
             //Create move. 
+            List<Card> cardsBeingMoved = this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).ToList();
+            Card targetCard = this.tableu[targetColumn].faceUpCards.Last();
+            Move move = new Move(cardsBeingMoved, targetCard);
             //Store move in history
+            movesHistory.Add(move);
+            graphics.NotifyLegalMove(move);
+            Debug.Log("Legal move");
         } else{
             //Put card back where it began
+            IllegalMove move = new IllegalMove(selectedCard);
+            graphics.NotifyIllegalMove(move);
+            Debug.Log("Illegal move");
         }
     }
 
@@ -111,5 +118,6 @@ public class GameManager : Singleton<GameManager>
         }
         return false;
     }
+
 
 }
