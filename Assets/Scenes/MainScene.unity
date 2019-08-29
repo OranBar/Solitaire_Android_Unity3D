@@ -182,7 +182,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 30
+  m_Text: '>9000!'
 --- !u!222 &31152896
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -245,7 +245,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0.8584906, b: 0.48020697, a: 1}
+  m_Color: {r: 0, g: 0.7075472, b: 0.5357529, a: 1}
   m_RaycastTarget: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -874,6 +874,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   cardToTableu_animDuration: 0.3
+  flipSpeed: 0.6
 --- !u!1 &1890013217
 GameObject:
   m_ObjectHideFlags: 0
