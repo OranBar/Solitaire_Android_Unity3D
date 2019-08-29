@@ -18,11 +18,19 @@ public class CardGO : MonoBehaviour
     public CardGO cardAbove, cardBelow;
     public bool isFaceUp;
 
+    private int cardId;
+    private static int NEXT_AVAILABLE_CARD_ID=0;
     
     private Vector3 offsetToCardAbove;
 
+    private void AcquireId(){
+        this.cardId = CardGO.NEXT_AVAILABLE_CARD_ID;
+        CardGO.NEXT_AVAILABLE_CARD_ID++;
+    }
+
     void Awake()
     {
+        AcquireId();
 
         mySpriteRenderers = new List<SpriteRenderer>();
         foreach(var cardObj_child in this.transform.GetAllChildren(true)){
