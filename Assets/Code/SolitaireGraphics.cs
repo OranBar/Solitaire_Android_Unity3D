@@ -73,8 +73,8 @@ public class SolitaireGraphics : MonoBehaviour
 
     private GameObject InstantiateAndScale(GameObject prefab, Vector2 suggestedCardSize, Vector3 pos){
         var newGo = GameObject.Instantiate(prefab, pos, Quaternion.identity);
-        var cardGo = newGo.GetComponent<CardGO>();
-        var multiplier = (suggestedCardSize.x) / (cardGo.mainSpriteRenderer.size.x);
+        var cardView = newGo.GetComponent<CardView>();
+        var multiplier = (suggestedCardSize.x) / (cardView.mainSpriteRenderer.size.x);
         newGo.transform.localScale = (newGo.transform.localScale) * (multiplier);
         return newGo;
     }
@@ -105,9 +105,9 @@ public class SolitaireGraphics : MonoBehaviour
         this.deckPile.name = "DeckPile";
         this.deckPile.transform.parent = cardsContainer; 
         
-        var deckCardGo = deckPileGo.GetComponent<CardGO>();
-        deckCardGo.front.SetActive(false);
-        deckCardGo.back.SetActive(true);
+        var deckcardView = deckPileGo.GetComponent<CardView>();
+        deckcardView.front.SetActive(false);
+        deckcardView.back.SetActive(true);
 
         //Place cards on tableu with animations
         float anim_delay = 0f;
@@ -121,31 +121,31 @@ public class SolitaireGraphics : MonoBehaviour
                 var foundationPileGo = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, target_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y,0) );
                 foundationPileGo.name = "Foundation_"+suits[i].ToString();
                 foundationPileGo.transform.parent = cardsContainer;
-                foundationPileGo.GetComponent<CardGO>().bigSuit.sprite = SpritesProvider.LoadSuitSprite(suits[i]);
+                foundationPileGo.GetComponent<CardView>().bigSuit.sprite = SpritesProvider.LoadSuitSprite(suits[i]);
             }
             
-            CardGO[] cardPile = new CardGO[i];
+            CardView[] cardPile = new CardView[i];
             //FaceDown Card Piles
             for(int ii = 0; ii<i; ii++){
                 var faceDownCard = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
                 faceDownCard.transform.parent = cardsContainer;
                 faceDownCard.transform.parent = cardsContainer;
 
-                CardGO faceDownCardGo = faceDownCard.GetComponent<CardGO>();
-                faceDownCardGo.isFaceUp = false;
+                CardView faceDowncardView = faceDownCard.GetComponent<CardView>();
+                faceDowncardView.isFaceUp = false;
 
                 //Reference card below and above
-                cardPile[ii] = faceDownCardGo;
+                cardPile[ii] = faceDowncardView;
                 if(ii > 0){
                     cardPile[ii].cardBelow = cardPile[ii-1];
                     cardPile[ii-1].cardAbove = cardPile[ii];
                 }
 
-                faceDownCardGo.IncreaseSortingOrder(ii);
+                faceDowncardView.IncreaseSortingOrder(ii);
                 // FixCardSortingLayers(faceDownCard, ii);
 
-                faceDownCardGo.front.SetActive(false);
-                faceDownCardGo.back.SetActive(true);
+                faceDowncardView.front.SetActive(false);
+                faceDowncardView.back.SetActive(true);
                 
                 //PrepareAnimation
                 target_pos.y = target_pos.y - faceDown_padding_y;
@@ -160,25 +160,25 @@ public class SolitaireGraphics : MonoBehaviour
             var newGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
             newGo.transform.parent = cardsContainer;
 
-            CardGO cardGo = newGo.GetComponent<CardGO>();
-            cardGo.isFaceUp = true;
+            CardView cardView = newGo.GetComponent<CardView>();
+            cardView.isFaceUp = true;
 
             //Reference card below and above
             if(cardPile.Length > 0){
-                CardGO topmostFaceDownCard = cardPile.Last();
-                cardGo.cardBelow = topmostFaceDownCard;
-                topmostFaceDownCard.cardAbove = cardGo;
+                CardView topmostFaceDownCard = cardPile.Last();
+                cardView.cardBelow = topmostFaceDownCard;
+                topmostFaceDownCard.cardAbove = cardView;
             }
         
-            cardGo.IncreaseSortingOrder(i);
+            cardView.IncreaseSortingOrder(i);
 
-            cardGo.front.SetActive(false);
-            cardGo.back.SetActive(true);
+            cardView.front.SetActive(false);
+            cardView.back.SetActive(true);
 
             Sprite suitSprite = SpritesProvider.LoadSuitSprite(card.suit);
-            cardGo.bigSuit.sprite = suitSprite;
-            cardGo.smallSuit.sprite = suitSprite;
-            cardGo.value.sprite = SpritesProvider.LoadValueSprite(card.value);
+            cardView.bigSuit.sprite = suitSprite;
+            cardView.smallSuit.sprite = suitSprite;
+            cardView.value.sprite = SpritesProvider.LoadValueSprite(card.value);
             
             target_pos.y = target_pos.y - faceDown_padding_y;   
             target_pos.z = -i; //If a card is above another, the Z has to reflect that, or the colliders will overlap and steal each others' calls
@@ -189,7 +189,7 @@ public class SolitaireGraphics : MonoBehaviour
                 .PrependInterval(anim_delay)
                 .Append(newGo.transform.DOMove(target_pos, cardToTableu_animDuration))
                 .Append(newGo.transform.DORotate(new Vector3(0,-90,0), flipSpeed/2f)
-                    .OnComplete(()=> {cardGo.front.SetActive(true); cardGo.back.SetActive(false);}))
+                    .OnComplete(()=> {cardView.front.SetActive(true); cardView.back.SetActive(false);}))
                 .Append(newGo.transform.DORotate(new Vector3(0,0,0), flipSpeed/2f));
 
             anim_delay +=0.15f;

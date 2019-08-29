@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CardGO : MonoBehaviour
+public class CardView : MonoBehaviour
 {
     public int moveSpeed = 2;
 
@@ -15,7 +15,7 @@ public class CardGO : MonoBehaviour
     private List<SpriteRenderer> mySpriteRenderers;
 
 
-    public CardGO cardAbove, cardBelow;
+    public CardView cardAbove, cardBelow;
     public bool isFaceUp;
 
     private int cardId;
@@ -24,8 +24,8 @@ public class CardGO : MonoBehaviour
     private Vector3 offsetToCardAbove;
 
     private void AcquireId(){
-        this.cardId = CardGO.NEXT_AVAILABLE_CARD_ID;
-        CardGO.NEXT_AVAILABLE_CARD_ID++;
+        this.cardId = CardView.NEXT_AVAILABLE_CARD_ID;
+        CardView.NEXT_AVAILABLE_CARD_ID++;
     }
 
     void Awake()
