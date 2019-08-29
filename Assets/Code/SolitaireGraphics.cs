@@ -8,9 +8,8 @@ using DG.Tweening;
 
 public class SolitaireGraphics : MonoBehaviour
 {
-    //---------------------------
+//---------------------------
     public GameObject cardPrefab, foundationPilePrefab;
-    // public int topBarHeight = 100;
     public RectTransform topBar;
     public int x_padding = 5;
     public int y_padding = 50;
@@ -18,6 +17,7 @@ public class SolitaireGraphics : MonoBehaviour
 
     public AnimationCurve easeFunction;
     public float cardToTableu_animDuration = 0.6f;
+    public float flipSpeed = 0.6f;
 
 //---------------------------
 
@@ -58,7 +58,6 @@ public class SolitaireGraphics : MonoBehaviour
             float x = (x_padding*(i+1)) + (cardWidth*i) + (cardWidth/2);
             float y = ((y_padding*2) + cardHeight/2 + cardHeight);
             Vector2 cardPosition_screen = new Vector3(x, Camera.main.pixelHeight - y,0);
-            Debug.Log(x+" "+y);
 
             Vector3 cardPosition_world = Camera.main.ScreenToWorldPoint(cardPosition_screen);
             cardPosition_world.z = 0;
@@ -78,15 +77,6 @@ public class SolitaireGraphics : MonoBehaviour
         var multiplier = (suggestedCardSize.x) / (cardGo.mainSpriteRenderer.size.x);
         newGo.transform.localScale = (newGo.transform.localScale) * (multiplier);
         return newGo;
-    }
-
-    private void FixCardSortingLayers(GameObject cardGo, int cardsBelow){
-        foreach(var cardObj_child in cardGo.transform.GetAllChildren(true)){
-            var spriteRenderer = cardObj_child.GetComponent<SpriteRenderer>();
-            if(spriteRenderer != null){
-                spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + cardsBelow;
-            }
-        }
     }
 
     public void SetUpGraphics(GameManager gameManager)
@@ -151,15 +141,15 @@ public class SolitaireGraphics : MonoBehaviour
                     cardPile[ii-1].cardAbove = cardPile[ii];
                 }
 
-                FixCardSortingLayers(faceDownCard, ii);
-                faceDownCard.transform.SetZ(ii);
+                faceDownCardGo.IncreaseSortingOrder(ii);
+                // FixCardSortingLayers(faceDownCard, ii);
 
                 faceDownCardGo.front.SetActive(false);
                 faceDownCardGo.back.SetActive(true);
                 
                 //PrepareAnimation
                 target_pos.y = target_pos.y - faceDown_padding_y;
-                target_pos.z = -ii;
+                target_pos.z = -ii; //If a card is above another, the Z has to reflect that, or the colliders will overlap and steal each others' calls
                 faceDownCard.transform.DOMove(target_pos, cardToTableu_animDuration).SetDelay(anim_delay);
                 
                 anim_delay += 0.15f;
@@ -168,14 +158,19 @@ public class SolitaireGraphics : MonoBehaviour
             Card card = gameManager.tableu[i].GetTopCard();
 
             var newGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
-            // var newGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, target_pos);
             newGo.transform.parent = cardsContainer;
 
             CardGO cardGo = newGo.GetComponent<CardGO>();
             cardGo.isFaceUp = true;
 
-            FixCardSortingLayers(newGo, i);
-            newGo.transform.SetZ(-i);
+            //Reference card below and above
+            if(cardPile.Length > 0){
+                CardGO topmostFaceDownCard = cardPile.Last();
+                cardGo.cardBelow = topmostFaceDownCard;
+                topmostFaceDownCard.cardAbove = cardGo;
+            }
+        
+            cardGo.IncreaseSortingOrder(i);
 
             cardGo.front.SetActive(false);
             cardGo.back.SetActive(true);
@@ -185,17 +180,17 @@ public class SolitaireGraphics : MonoBehaviour
             cardGo.smallSuit.sprite = suitSprite;
             cardGo.value.sprite = SpritesProvider.LoadValueSprite(card.value);
             
-            target_pos.y = target_pos.y - faceDown_padding_y;
-            target_pos.z = -i;
+            target_pos.y = target_pos.y - faceDown_padding_y;   
+            target_pos.z = -i; //If a card is above another, the Z has to reflect that, or the colliders will overlap and steal each others' calls
 
             //PrepareAnimation
             Sequence moveAndTurnSequence = DOTween.Sequence();
             moveAndTurnSequence
                 .PrependInterval(anim_delay)
                 .Append(newGo.transform.DOMove(target_pos, cardToTableu_animDuration))
-                .Append(newGo.transform.DORotate(new Vector3(0,-90,0), 0.5f)
+                .Append(newGo.transform.DORotate(new Vector3(0,-90,0), flipSpeed/2f)
                     .OnComplete(()=> {cardGo.front.SetActive(true); cardGo.back.SetActive(false);}))
-                .Append(newGo.transform.DORotate(new Vector3(0,0,0), 0.5f));
+                .Append(newGo.transform.DORotate(new Vector3(0,0,0), flipSpeed/2f));
 
             anim_delay +=0.15f;
         }
