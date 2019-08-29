@@ -92,12 +92,14 @@ public class GameManager : Singleton<GameManager>
         return this.suit_to_foundationPile[suit];
     }
 
-    public void NotifyCardDropped(Card card, int targetColumn){
+    public void NotifyCardDropped(Card selectedCard, int targetColumn){
         CardColumn targetCardColumn = this.tableu[targetColumn];
-        Card columnCard = targetCardColumn.faceUpCards.Last();
-        if(IsLegalMove(card, columnCard)){
+        Card cardToDropOn = targetCardColumn.faceUpCards.Last();
+        if(IsLegalMove(selectedCard, cardToDropOn)){
             //Create move. 
             //Store move in history
+        } else{
+            //Put card back where it began
         }
     }
 

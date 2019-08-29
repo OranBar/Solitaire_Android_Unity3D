@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Move : MonoBehaviour
+public class Move 
 {
-    // Start is called before the first frame update
-    void Start()
+    public Card movedCard, destinationCard;
+    public int startColumn, destinationColumn;
+
+    public Move(Card movedCard, Card destinationCard, int startColumn, int destinationColumn)
     {
-        
+        this.movedCard = movedCard;
+        this.destinationCard = destinationCard;
+        this.startColumn = startColumn;
+        this.destinationColumn = destinationColumn;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

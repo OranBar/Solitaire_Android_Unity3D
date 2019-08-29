@@ -116,11 +116,12 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
         //Place cards on tableu with animations
         float anim_delay = 0f;
 
+        // Loop tableu columns 1 by 1
         for (int i = 0; i < gameManager.tableu.Length; i++)
         {
             var target_pos = tableuPositions[i] - topBarOffset;
 
-            //Foundation Piles
+            //Foundation Pile
             if(i < 4){
                 var foundationPileGo = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, target_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y,0) );
                 foundationPileGo.name = "Foundation_"+suits[i].ToString();
@@ -129,14 +130,16 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
             }
             
             CardView[] cardPile = new CardView[i];
-            //FaceDown Card Piles
+            //FaceDown Card Pile
+            List<Card> faceDownCards_data = new List<Card>(gameManager.tableu[i].faceDownCards);
             for(int ii = 0; ii<i; ii++){
-                var faceDownCard = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
-                faceDownCard.transform.parent = cardsContainer;
-                faceDownCard.transform.parent = cardsContainer;
+                var faceDownCardGo = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
+                faceDownCardGo.transform.parent = cardsContainer;
+                faceDownCardGo.transform.parent = cardsContainer;
 
-                CardView faceDowncardView = faceDownCard.GetComponent<CardView>();
+                CardView faceDowncardView = faceDownCardGo.GetComponent<CardView>();
                 faceDowncardView.isFaceUp = false;
+                faceDowncardView.cardData = faceDownCards_data[ii];
 
                 //Reference card below and above
                 cardPile[ii] = faceDowncardView;
@@ -154,7 +157,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
                 //PrepareAnimation
                 target_pos.y = target_pos.y - faceDown_padding_y;
                 target_pos.z = -ii; //If a card is above another, the Z has to reflect that, or the colliders will overlap and steal each others' calls
-                faceDownCard.transform.DOMove(target_pos, cardToTableu_animDuration).SetDelay(anim_delay);
+                faceDownCardGo.transform.DOMove(target_pos, cardToTableu_animDuration).SetDelay(anim_delay);
                 
                 anim_delay += 0.15f;
             }
@@ -166,6 +169,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>
 
             CardView cardView = newGo.GetComponent<CardView>();
             cardView.isFaceUp = true;
+            cardView.cardData = gameManager.tableu[i].faceUpCards[0];
 
             //Reference card below and above
             if(cardPile.Length > 0){

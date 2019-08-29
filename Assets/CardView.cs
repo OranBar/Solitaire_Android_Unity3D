@@ -18,20 +18,13 @@ public class CardView : MonoBehaviour
     public CardView cardAbove, cardBelow;
     public bool isFaceUp;
 
-    private int cardId;
-    private static int NEXT_AVAILABLE_CARD_ID=0;
+    public Card cardData;
     
     private Vector3 offsetToCardAbove;
-
-    private void AcquireId(){
-        this.cardId = CardView.NEXT_AVAILABLE_CARD_ID;
-        CardView.NEXT_AVAILABLE_CARD_ID++;
-    }
+    // private Vector3 positionBeforeDrag;
 
     void Awake()
     {
-        AcquireId();
-
         mySpriteRenderers = new List<SpriteRenderer>();
         foreach(var cardObj_child in this.transform.GetAllChildren(true)){
             var spriteRenderer = cardObj_child.GetComponent<SpriteRenderer>();
@@ -42,11 +35,12 @@ public class CardView : MonoBehaviour
 
         offsetToCardAbove = new Vector3(0, GameObject.FindObjectOfType<SolitaireGraphics>().faceUp_padding_y, 0);
     }
-    
+
     void OnMouseDown()
     {
         if(isFaceUp){
             ChangeSortingLayer_Recursive("Selectedcards");
+            // positionBeforeDrag = this.transform.position;
         }
     }
 
@@ -54,10 +48,11 @@ public class CardView : MonoBehaviour
     {
         if(isFaceUp){
             ChangeSortingLayer_Recursive("Default");
+            int closestColumn = SolitaireGraphics.Instance.GetClosestColumn(this.transform.position);
+            GameManager.Instance.NotifyCardDropped(cardData, closestColumn);
         }
 
-        int closestColumn = SolitaireGraphics.Instance.GetClosestColumn(this.transform.position);
-        Debug.Log("Closest Column is "+closestColumn);
+
     }
 
     Vector3 currentVelocity;
