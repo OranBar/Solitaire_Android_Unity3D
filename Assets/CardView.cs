@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
 public class CardView : MonoBehaviour
@@ -38,6 +39,15 @@ public class CardView : MonoBehaviour
         offsetToCardAbove = new Vector3(0, GameObject.FindObjectOfType<SolitaireGraphics>().faceUp_padding_y, 0);
     }
 
+    public void TurnFaceUp(float flipSpeed){
+        Sequence flipSequence = DOTween.Sequence();
+        
+        flipSequence
+        .Append(this.transform.DORotate(new Vector3(0, -90, 0), flipSpeed / 2f)
+            .OnComplete(() => { front.SetActive(true); back.SetActive(false); isFaceUp=true;}))
+                .Append(this.transform.DORotate(new Vector3(0, 0, 0), flipSpeed / 2f));
+    }
+
     void OnMouseDown()
     {
         if(isFaceUp){
@@ -49,10 +59,12 @@ public class CardView : MonoBehaviour
 
     void OnMouseUp()
     {
-        ChangeSortingLayer_Recursive("Default");
-        isBeingDragged = false;
-        int closestColumn = SolitaireGraphics.Instance.GetClosestColumn(this.transform.position);
-        GameManager.Instance.NotifyCardDropped(cardData, closestColumn);
+        if(isFaceUp){
+            ChangeSortingLayer_Recursive("Default");
+            isBeingDragged = false;
+            int closestColumn = SolitaireGraphics.Instance.GetClosestColumn(this.transform.position);
+            GameManager.Instance.NotifyCardDropped(cardData, closestColumn);
+        }
     }
 
     Vector3 currentVelocity;

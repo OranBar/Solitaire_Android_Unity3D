@@ -17,7 +17,8 @@ public class DeckShuffler
         Card[] tmpDeck = new Card[52];
         List<int> availableIndexes = Enumerable.Range(0, 52).ToList();
 
-        foreach(Suit suit in Enum.GetValues(typeof(Suit))){
+        Suit[] suits = new Suit[]{Suit.Hearts, Suit.Diamonds, Suit.Clubs, Suit.Spades};
+        foreach(Suit suit in suits){
             for(int cardValue=1; cardValue<=13; cardValue++){
                 Card card = new Card(cardValue, suit);
                 

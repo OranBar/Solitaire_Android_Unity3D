@@ -36,8 +36,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         int spaceNeededForMargins = (noOfColumns+1)*x_padding;
 
         float cardWidth = (screenWidth - spaceNeededForMargins) / noOfColumns;
-        // float cardRatio = (2.5f / 3.5f); 
-        // float cardHeight = cardWidth * cardRatio;
         // 2.5 x 3.5 inches is the standard size of poker cards
         float cardHeight = (cardWidth * 3.5f) / 2.5f;
 
@@ -150,48 +148,32 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             moveAndFlipSequence
                 .PrependInterval(anim_delay)
                 .Append(cardGO.transform.DOMove(tableuColumn_pos, cardToTableu_animDuration))
-                .Append(cardGO.transform.DORotate(new Vector3(0, -90, 0), flipSpeed / 2f)
-                    .OnComplete(() => { cardView.front.SetActive(true); cardView.back.SetActive(false); }))
-                .Append(cardGO.transform.DORotate(new Vector3(0, 0, 0), flipSpeed / 2f));
-
+                .OnComplete(() => { cardView.TurnFaceUp(flipSpeed); });
+                
             anim_delay += 0.15f;
 
             //TODO: Map Deck pile?
         }
     }
 
-    private GameObject InstantiateFaceUpCard(CardColumn[] tableu, Vector2 suggestedCardSize, int column, CardView[] cardPile)
+    private GameObject InstantiateFaceUpCard(CardColumn[] tableu, Vector2 suggestedCardSize, int column, CardView[] facedownCardPileBelow)
     {
         Card card = tableu[column].GetTopCard();
 
-        GameObject cardGO = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
+        GameObject cardGO = this.InstantiateCardGameObject(suggestedCardSize, deckPile.position, false, card.suit, card.value, facedownCardPileBelow.Length);
         CardView cardView = cardGO.GetComponent<CardView>();
-        cardGO.transform.parent = cardsContainer;
-
-        cardView = cardGO.GetComponent<CardView>();
-        cardView.isFaceUp = true;
         cardView.cardData = tableu[column].faceUpCards[0];
         this.cardData_to_cardView[cardView.cardData] = cardView;
+        
         cardGO.name = cardView.cardData.ToString();
 
         //Reference card below and above
-        if (cardPile.Length > 0)
+        if (facedownCardPileBelow.Length > 0)
         {
-            CardView topmostFaceDownCard = cardPile.Last();
+            CardView topmostFaceDownCard = facedownCardPileBelow.Last();
             cardView.cardBelow = topmostFaceDownCard;
             topmostFaceDownCard.cardAbove = cardView;
         }
-
-        int cardsBelow = column;
-        cardView.IncreaseSortingOrder(cardsBelow);
-
-        cardView.front.SetActive(false);
-        cardView.back.SetActive(true);
-
-        Sprite suitSprite = SpritesProvider.LoadSuitSprite(card.suit);
-        cardView.bigSuit.sprite = suitSprite;
-        cardView.smallSuit.sprite = suitSprite;
-        cardView.value.sprite = SpritesProvider.LoadValueSprite(card.value);
 
         return cardGO;
     }
@@ -199,26 +181,26 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
     private void InstantiateFoundationPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Suit suit, Vector3 tableuColumn_pos)
     {
         Vector3 targetPos = tableuColumn_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
-        var foundationPileGO = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, targetPos);
-        foundationPileGO.name = "Foundation_" + suit.ToString();
+        GameObject foundationPileGO = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, targetPos);
         foundationPileGO.transform.parent = cardsContainer;
         foundationPileGO.GetComponent<CardView>().bigSuit.sprite = SpritesProvider.LoadSuitSprite(suit);
+        foundationPileGO.name = "Foundation_" + suit.ToString();
     }
 
     private void InstantiateDeckPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Vector3 topBarOffset)
     {
-        var deckPile_pos = tableuPositions.Last() - topBarOffset;
-        GameObject deckPileGO = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0));
+        var deckPile_pos = tableuPositions.Last() - topBarOffset + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
+        GameObject deckPileGO = this.InstantiateCardGameObject(suggestedCardSize, deckPile_pos, false);
+
         this.deckPile = deckPileGO.transform;
         this.deckPile.name = "DeckPile";
-        this.deckPile.transform.parent = cardsContainer;
-
-        var deckcardView = deckPileGO.GetComponent<CardView>();
-        deckcardView.front.SetActive(false);
-        deckcardView.back.SetActive(true);
     }
 
-    private void InstantiateCardGameObject(Vector2 suggestedCardSize, Vector3 pos, bool faceUp, Suit suit, int value, int cardsBelow = 0){
+    private GameObject InstantiateCardGameObject(Vector2 suggestedCardSize, Vector3 pos, bool faceUp, Suit suit = Suit.None, int value = -1, int cardsBelow = 0){
+        if( faceUp && (suit==Suit.None || value==-1) ){
+            Debug.LogError("value and suit parameters must be provided for faceup cards");
+        }
+
         GameObject cardGO = this.InstantiateAndScale(cardPrefab, suggestedCardSize, pos);
         CardView cardView = cardGO.GetComponent<CardView>();
         cardView.isFaceUp = faceUp;
@@ -228,6 +210,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         Sprite suitSprite = SpritesProvider.LoadSuitSprite(suit);
         cardView.bigSuit.sprite = suitSprite;
         cardView.smallSuit.sprite = suitSprite;
+        cardView.value.sprite = SpritesProvider.LoadValueSprite(value);
         
         cardView.IncreaseSortingOrder(cardsBelow);
 
@@ -235,34 +218,28 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         cardView.back.SetActive( !faceUp );
 
         cardView.bigSuit.sprite = suitSprite;
+
+        return cardGO;
     }
 
 
     private GameObject InstantiateFaceDownCard(Vector2 suggestedCardSize, CardView[] cardPile, List<Card> faceDownCards_data, int ii)
     {
-        var faceDownCardGO = this.InstantiateAndScale(cardPrefab, suggestedCardSize, deckPile.position);
-        faceDownCardGO.transform.parent = cardsContainer;
-        faceDownCardGO.transform.parent = cardsContainer;
-
-        CardView faceDowncardView = faceDownCardGO.GetComponent<CardView>();
-        faceDowncardView.isFaceUp = false;
-        faceDowncardView.cardData = faceDownCards_data[ii];
-        this.cardData_to_cardView[faceDowncardView.cardData] = faceDowncardView;
-        faceDownCardGO.name = faceDowncardView.cardData.ToString();
+        GameObject faceDownCardGO = this.InstantiateCardGameObject(suggestedCardSize, deckPile.position, false);
+        CardView faceDownCardView = faceDownCardGO.GetComponent<CardView>();
+        faceDownCardView.cardData = faceDownCards_data[ii];
+        this.cardData_to_cardView[faceDownCardView.cardData] = faceDownCardView;
+        
+        faceDownCardGO.name = faceDownCardView.cardData.ToString();
 
         //Reference card below and above
-        cardPile[ii] = faceDowncardView;
+        cardPile[ii] = faceDownCardView;
         if (ii > 0)
         {
             cardPile[ii].cardBelow = cardPile[ii - 1];
             cardPile[ii - 1].cardAbove = cardPile[ii];
         }
 
-        faceDowncardView.IncreaseSortingOrder(ii);
-        // FixCardSortingLayers(faceDownCard, ii);
-
-        faceDowncardView.front.SetActive(false);
-        faceDowncardView.back.SetActive(true);
         return faceDownCardGO;
     }
 
@@ -290,7 +267,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         }
 
         Vector2 cardSize_worldSpace = this.ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
-        // float aboveTableu_YCoord = this.deckPile.position.y - (cardSize_worldSpace.y/2f);
         float aboveTableu_YCoord = this.tableuPositions[0].y - (cardSize_worldSpace.y);
 
         if(releasedCardPosition.y > aboveTableu_YCoord){

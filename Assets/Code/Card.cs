@@ -7,7 +7,8 @@ public enum Suit{
     Hearts=0,
     Diamonds=1,
     Clubs=2,
-    Spades=3
+    Spades=3,
+    None=4
 }
 
 public enum SuitColor{

@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class SpritesProvider 
 {
+    private static Sprite Load_Blank_Sprite(){
+        return Resources.Load<Sprite>("Blank_Square");
+    }
+
     public static Sprite LoadSuitSprite(Suit suit){
         switch(suit){
             case Suit.Hearts:
@@ -15,16 +19,17 @@ public class SpritesProvider
             case Suit.Spades:
                 return Resources.Load<Sprite>("suits/picche");
             default:
-                Debug.LogError("Can't find sprite");
-                return null;
+                return Load_Blank_Sprite();
         }
     }
 
     public static Sprite LoadValueSprite(int value){
-        Debug.Assert(value>0 && value<14);
+        Debug.Assert(value>=-1 && value<14);
         string spriteName;
 
         switch(value){
+            case -1: return Load_Blank_Sprite();
+
             case 1: spriteName = "A"; break;
             case 11: spriteName = "J"; break;
             case 12: spriteName = "Q"; break;
