@@ -105,6 +105,15 @@ public class CardView : MonoBehaviour
         }
     }
 
+    public void SetSortingOrderAndZDepth(int cardsBelow){
+        int delta = cardsBelow - (int) this.transform.position.z;
+        IncreaseSortingOrder(delta);
+        
+        var tmpPosition = this.transform.position;
+        tmpPosition.z = -cardsBelow;
+        this.transform.position = tmpPosition;
+    }
+
     public void IncreaseSortingOrder(int amountToIncrease){
         foreach(var spriteRenderer in mySpriteRenderers){
             spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + amountToIncrease;

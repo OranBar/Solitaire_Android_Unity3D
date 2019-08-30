@@ -91,23 +91,39 @@ public class GameManager : Singleton<GameManager>
     }
 
     public void NotifyCardDropped(Card selectedCard, int targetColumn){
-        CardColumn targetCardColumn = this.tableu[targetColumn];
-        Card cardToDropOn = targetCardColumn.faceUpCards.Last();
-        if(IsLegalMove(selectedCard, cardToDropOn)){
-            //Create move. 
-            List<Card> cardsBeingMoved = this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).ToList();
-            Card targetCard = this.tableu[targetColumn].faceUpCards.Last();
-            Move move = new Move(cardsBeingMoved, targetCard);
-            //Store move in history
-            movesHistory.Add(move);
-            graphics.NotifyLegalMove(move);
-            Debug.Log("Legal move");
-        } else{
-            //Put card back where it began
+        if(targetColumn == SolitaireGraphics.INVALID_COLUMN){
+            //Card was dropped on the upper part of the table, between foundation piles and deckPile. 
             IllegalMove move = new IllegalMove(selectedCard);
             graphics.NotifyIllegalMove(move);
             Debug.Log("Illegal move");
         }
+        else if(targetColumn >= -4 && targetColumn <=-1){
+            //Card was dropped on foundation pile
+
+            Debug.Log("Foundation Pile move");
+        }else{
+            //Card was dropped on one of the tableu's columns
+            CardColumn targetCardColumn = this.tableu[targetColumn];
+            Card cardToDropOn = targetCardColumn.faceUpCards.Last();
+            if(IsLegalMove(selectedCard, cardToDropOn)){
+                //Create move. 
+                List<Card> cardsBeingMoved = this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).ToList();
+                Card targetCard = this.tableu[targetColumn].faceUpCards.Last();
+                Move move = new Move(cardsBeingMoved, targetCard);
+                //Graphics react to move
+                graphics.NotifyLegalMove(move);
+                //Store move in history
+                movesHistory.Add(move);
+                Debug.Log("Legal move");
+                //Update Game data
+            } else{
+                //Put card back where it began
+                IllegalMove move = new IllegalMove(selectedCard);
+                graphics.NotifyIllegalMove(move);
+                Debug.Log("Illegal move");
+            }
+        }
+
     }
 
     public bool IsLegalMove(Card draggedCard, Card destinationCard){
