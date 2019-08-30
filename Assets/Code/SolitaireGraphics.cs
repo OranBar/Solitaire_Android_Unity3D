@@ -177,15 +177,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         }
     }
 
-    // private void InstantiateStockPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Vector3 topBarOffset)
-    // {
-    //     var deckPile_pos = tableuPositions.Last() - topBarOffset + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
-    //     GameObject deckPileGO = this.InstantiateCardGameObject(suggestedCardSize, deckPile_pos, false);
-
-    //     this.stockPile_pos = deckPileGO.transform.position;
-    //     // this.stockPilePos.name = "StockPile";
-    // }
-
     private void InstantiateFoundationPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Suit suit, Vector3 tableuColumn_pos)
     {
         Vector3 targetPos = tableuColumn_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
@@ -257,8 +248,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         cardView.smallSuit.sprite = suitSprite;
         cardView.value.sprite = SpritesProvider.LoadValueSprite(value);
         
-        // cardView.IncreaseSortingOrder(cardsBelow);
-        // cardGO.transform.SetZ(cardsBelow);
         cardView.SetSortingOrderAndZDepth(cardsBelow);
 
         cardView.front.SetActive( faceUp );
@@ -347,8 +336,12 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             //Update cardview's cardabove/cardbelow for selected and destination card
             selectedCardView.cardBelow = destinationCardView;
             destinationCardView.cardAbove = selectedCardView;
+
+            selectedCardView.SetSortingOrderAndZDepth((int)(-destinationCardView.transform.position.z));
+            targetPos.z = selectedCardView.transform.position.z; //Update Z depth
         }else{
             targetPos = this.tableuPositions[targetColumn];
+            selectedCardView.SetSortingOrderAndZDepth(0);
         }
 
         //Reuse recursive logic to move the card to the target spot.

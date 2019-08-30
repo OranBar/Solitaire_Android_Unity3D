@@ -101,16 +101,17 @@ public class CardView : MonoBehaviour
         //TODO: try adding deltaTime
         transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref currentVelocity, speed * Time.deltaTime);
         if(cardAbove != null){
+            targetPosition.z = cardAbove.transform.position.z;
             cardAbove.MoveTowardsPoint_Recursive(targetPosition - offsetToCardAbove, speed * 1.5f);
         }
     }
 
     public void SetSortingOrderAndZDepth(int cardsBelow){
-        int delta = cardsBelow - (int) this.transform.position.z;
+        int delta = (cardsBelow+1) + (int) this.transform.position.z;
         IncreaseSortingOrder(delta);
         
         var tmpPosition = this.transform.position;
-        tmpPosition.z = -cardsBelow;
+        tmpPosition.z = -(cardsBelow+1);
         this.transform.position = tmpPosition;
     }
 
