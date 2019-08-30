@@ -156,6 +156,24 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         }
     }
 
+    private void InstantiateFoundationPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Suit suit, Vector3 tableuColumn_pos)
+    {
+        Vector3 targetPos = tableuColumn_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
+        GameObject foundationPileGO = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, targetPos);
+        foundationPileGO.transform.parent = cardsContainer;
+        foundationPileGO.GetComponent<CardView>().bigSuit.sprite = SpritesProvider.LoadSuitSprite(suit);
+        foundationPileGO.name = "Foundation_" + suit.ToString();
+    }
+
+    private void InstantiateDeckPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Vector3 topBarOffset)
+    {
+        var deckPile_pos = tableuPositions.Last() - topBarOffset + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
+        GameObject deckPileGO = this.InstantiateCardGameObject(suggestedCardSize, deckPile_pos, false);
+
+        this.deckPile = deckPileGO.transform;
+        this.deckPile.name = "DeckPile";
+    }
+
     private GameObject InstantiateFaceUpCard(CardColumn[] tableu, Vector2 suggestedCardSize, int column, CardView[] facedownCardPileBelow)
     {
         Card card = tableu[column].GetTopCard();
@@ -178,24 +196,27 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         return cardGO;
     }
 
-    private void InstantiateFoundationPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Suit suit, Vector3 tableuColumn_pos)
+    private GameObject InstantiateFaceDownCard(Vector2 suggestedCardSize, CardView[] cardPile, List<Card> faceDownCards_data, int ii)
     {
-        Vector3 targetPos = tableuColumn_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
-        GameObject foundationPileGO = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, targetPos);
-        foundationPileGO.transform.parent = cardsContainer;
-        foundationPileGO.GetComponent<CardView>().bigSuit.sprite = SpritesProvider.LoadSuitSprite(suit);
-        foundationPileGO.name = "Foundation_" + suit.ToString();
+        GameObject faceDownCardGO = this.InstantiateCardGameObject(suggestedCardSize, deckPile.position, false);
+        CardView faceDownCardView = faceDownCardGO.GetComponent<CardView>();
+        faceDownCardView.cardData = faceDownCards_data[ii];
+        this.cardData_to_cardView[faceDownCardView.cardData] = faceDownCardView;
+        
+        faceDownCardGO.name = faceDownCardView.cardData.ToString();
+
+        //Reference card below and above
+        cardPile[ii] = faceDownCardView;
+        if (ii > 0)
+        {
+            cardPile[ii].cardBelow = cardPile[ii - 1];
+            cardPile[ii - 1].cardAbove = cardPile[ii];
+        }
+
+        return faceDownCardGO;
     }
 
-    private void InstantiateDeckPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Vector3 topBarOffset)
-    {
-        var deckPile_pos = tableuPositions.Last() - topBarOffset + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
-        GameObject deckPileGO = this.InstantiateCardGameObject(suggestedCardSize, deckPile_pos, false);
-
-        this.deckPile = deckPileGO.transform;
-        this.deckPile.name = "DeckPile";
-    }
-
+    
     private GameObject InstantiateCardGameObject(Vector2 suggestedCardSize, Vector3 pos, bool faceUp, Suit suit = Suit.None, int value = -1, int cardsBelow = 0){
         if( faceUp && (suit==Suit.None || value==-1) ){
             Debug.LogError("value and suit parameters must be provided for faceup cards");
@@ -220,27 +241,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         cardView.bigSuit.sprite = suitSprite;
 
         return cardGO;
-    }
-
-
-    private GameObject InstantiateFaceDownCard(Vector2 suggestedCardSize, CardView[] cardPile, List<Card> faceDownCards_data, int ii)
-    {
-        GameObject faceDownCardGO = this.InstantiateCardGameObject(suggestedCardSize, deckPile.position, false);
-        CardView faceDownCardView = faceDownCardGO.GetComponent<CardView>();
-        faceDownCardView.cardData = faceDownCards_data[ii];
-        this.cardData_to_cardView[faceDownCardView.cardData] = faceDownCardView;
-        
-        faceDownCardGO.name = faceDownCardView.cardData.ToString();
-
-        //Reference card below and above
-        cardPile[ii] = faceDownCardView;
-        if (ii > 0)
-        {
-            cardPile[ii].cardBelow = cardPile[ii - 1];
-            cardPile[ii - 1].cardAbove = cardPile[ii];
-        }
-
-        return faceDownCardGO;
     }
 
     private Vector3 ComputeTopBarOffset()
