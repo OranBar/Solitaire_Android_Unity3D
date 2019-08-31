@@ -392,6 +392,10 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             selectedCardView.cardBelow.cardAbove = null;
         }
 
+        if(move.from.zone == Zone.Waste){
+            selectedCardView.cardAbove = null;
+        }
+
         if(move.to.zone == Zone.Tableu){
             bool isTargetColumnEmpty = GameManager.Instance.tableu[targetColumn].faceUpCards.IsNullOrEmpty();
             if(isTargetColumnEmpty == false){
