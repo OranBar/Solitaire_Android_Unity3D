@@ -330,6 +330,8 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             //We are trying to place on foundation pile
             if(closestColumnToPoint < 4){
                 return new TablePosition(Zone.Foundation, (closestColumnToPoint));
+            } else if(closestColumnToPoint == this.tableuPositions.Length-1){
+                return new TablePosition(Zone.Waste, 1);
             } else {
                 //We are trying to place between foundation and right edge. No moves towards this zone are allowed.
                 return new TablePosition(Zone.NotAZone, -1);

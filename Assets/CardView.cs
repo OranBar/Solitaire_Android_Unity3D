@@ -60,6 +60,8 @@ public class CardView : MonoBehaviour
 
     void OnMouseDown()
     {
+        if(PauseMenu.Instance.isPaused){return;}
+
         if(isFaceUp){
             ChangeSortingLayer_Recursive("Selectedcards");
             isBeingDragged = true;
@@ -69,6 +71,8 @@ public class CardView : MonoBehaviour
 
     void OnMouseUp()
     {
+        if(PauseMenu.Instance.isPaused){return;}
+
         if(isFaceUp){
             ChangeSortingLayer_Recursive("Default");
             isBeingDragged = false;
@@ -131,7 +135,7 @@ public class CardView : MonoBehaviour
 
     public void SetSortingOrderAndZDepth(int cardsBelow){
         int delta = (cardsBelow+1) + (int) this.transform.position.z;
-        IncreaseSortingOrder(delta);
+        IncreaseSortingOrder(delta+1);
         
         var tmpPosition = this.transform.position;
         tmpPosition.z = -(cardsBelow+1);
