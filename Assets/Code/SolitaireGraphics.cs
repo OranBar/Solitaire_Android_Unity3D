@@ -415,10 +415,16 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
     public void NotifyFlipStockCardMove(Card revealedStockCard, List<Card> wastePile){
         int wastePileCount = wastePile.Count;
 
+        if(wastePileCount > 0){
+            //Disable interactions with the card that was at the top of the waste pile, before this move, which made it second to top.
+            this.cardData_to_cardView[wastePile.First()].enabled = false;
+        }
+
         //Get the card on top of the stock. Move and flip it.
         CardView revealedStockCardView = this.cardData_to_cardView[revealedStockCard];
+        revealedStockCardView.enabled = true;
         Vector3 cardSize = ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
-        
+        revealedStockCardView.SetSortingOrderAndZDepth(wastePileCount);
         
         Vector3 targetMovePoint = revealedStockCardView.transform.position;
         float mult = Mathf.Max(3 - wastePileCount, 1);
@@ -428,6 +434,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         //Flip and Move
         revealedStockCardView.transform.DOMove(targetMovePoint, flipSpeed);
         revealedStockCardView.TurnFaceUp(flipSpeed);
+
 
         //Scoop left the upmost two cards in the pile, if we are now exceeding 3 cards
         if(wastePileCount >= 3){
