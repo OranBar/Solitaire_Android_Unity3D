@@ -5,14 +5,13 @@ using UnityEngine;
 public class Move 
 {
     public List<Card> movedCards;
-    public Card destinationCard;
-    // public int startColumn, destinationColumn;
+    
+    public TablePosition from, to;
 
-    public Move(List<Card> movedCards, Card destinationCard)
+    public Move(List<Card> movedCards, TablePosition from, TablePosition to)
     {
         this.movedCards = movedCards;
-        this.destinationCard = destinationCard;
-        // this.startColumn = startColumn;
-        // this.destinationColumn = destinationColumn;
+        this.from = from;
+        this.to = to;
     }
 }

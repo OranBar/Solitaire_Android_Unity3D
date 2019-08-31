@@ -27,6 +27,8 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
 
     private Vector3 stockPile_pos;
+
+    private Vector3[] foundationPilesPositions = new Vector3[4];
     private Vector3[] tableuPositions;
     private Dictionary<Card, CardView> cardData_to_cardView = new Dictionary<Card, CardView>();
     private Transform cardsContainer;
@@ -71,7 +73,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         }
         return tableuPortraitPositions;
     }
-
     public static float ScreenSpace_To_WorldSpace(int noOfPixels){
         Vector2 result = Camera.main.ScreenToWorldPoint(new Vector2(noOfPixels, 0)) - Camera.main.ScreenToWorldPoint(Vector2.zero);
         return result.x;
@@ -121,8 +122,9 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             //Foundation Pile
             if (i < 4)
             {
-                Suit[] suits = Enum.GetValues(typeof(Suit)) as Suit[];
-                InstantiateFoundationPile(suggestedCardSize, y_padding_worldSpace, suits[i], tableuColumn_pos);
+                Suit[] suits = new Suit[]{Suit.Hearts, Suit.Diamonds, Suit.Clubs, Suit.Spades};
+                GameObject foundationPileGO = InstantiateFoundationPile(suggestedCardSize, y_padding_worldSpace, suits[i], tableuColumn_pos);
+                foundationPilesPositions[i] = foundationPileGO.transform.position;
             }
 
             CardView[] cardPile = new CardView[i];
@@ -203,13 +205,15 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         go.transform.parent = cardsContainer;
     }
 
-    private void InstantiateFoundationPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Suit suit, Vector3 tableuColumn_pos)
+    private GameObject InstantiateFoundationPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Suit suit, Vector3 tableuColumn_pos)
     {
         Vector3 targetPos = tableuColumn_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
         GameObject foundationPileGO = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, targetPos);
         foundationPileGO.transform.parent = cardsContainer;
         foundationPileGO.GetComponent<CardView>().bigSuit.sprite = SpritesProvider.LoadSuitSprite(suit);
         foundationPileGO.name = "Foundation_" + suit.ToString();
+
+        return foundationPileGO;
     }
 
     private GameObject InstantiateFaceUpCard(CardColumn[] tableu, Vector2 suggestedCardSize, int column, CardView[] facedownCardPileBelow)
@@ -299,72 +303,83 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         return topBarOffset;
     }
 
-    public static int INVALID_COLUMN = -6;
-
-
     public bool IsPointAboveTableu(Vector2 point){
         Vector2 cardSize_worldSpace = this.ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
         float aboveTableu_YCoord = this.tableuPositions[0].y - (cardSize_worldSpace.y);
 
         return point.y > aboveTableu_YCoord;
     }
+
     
-    public int GetClosestColumn(Vector2 releasedCardPosition){
+    public TablePosition GetTablePosition(Vector3 position)
+    {
         float minDistance = float.MaxValue;
         int closestColumnToPoint = -1;
 
         for (int i = 0; i < this.tableuPositions.Length; i++)
         {
             var pos = tableuPositions[i];
-            float distance = Mathf.Abs(releasedCardPosition.x - pos.x);
+            float distance = Mathf.Abs(position.x - pos.x);
             if(distance < minDistance){
                 minDistance = distance;
                 closestColumnToPoint = i;
             }
         }
 
-        if(IsPointAboveTableu(releasedCardPosition)){
+        if(IsPointAboveTableu(position)){
             //We are trying to place on foundation pile
             if(closestColumnToPoint < 4){
-                return -(closestColumnToPoint+1);
+                return new TablePosition(Zone.Foundation, (closestColumnToPoint));
             } else {
-                return INVALID_COLUMN;  //Means invalid column
+                //We are trying to place between foundation and right edge. No moves towards this zone are allowed.
+                return new TablePosition(Zone.NotAZone, -1);
             }
         } else{ 
             // We are trying to place on tableu
-            return closestColumnToPoint;
+            return new TablePosition(Zone.Tableu, closestColumnToPoint); 
         }
-
     }
 
-    // public void PlaceCard(Card selectedCard, int targetColumn){
-    //     // CardView destinationCardView = this.cardData_to_cardView[destinationCard];
-    //     CardView cardView = this.cardData_to_cardView[selectedCard];
+    
+    // public int GetClosestColumn(Vector2 releasedCardPosition){
+    //     float minDistance = float.MaxValue;
+    //     int closestColumnToPoint = -1;
 
-    //     Vector3 targetPos = this.tableuPositions[targetColumn];
-    //     bool isTargetColumnEmpty = GameManager.Instance.tableu[targetColumn].faceUpCards.IsNullOrEmpty();
-    //     if(isTargetColumnEmpty == false){
-    //         CardColumn targetCardColumn = GameManager.Instance.tableu[targetColumn];
-    //         Card destinationCard = taporgetCardColumn.faceUpCards.Last();
-    //         CardView destinationCardView = this.cardData_to_cardView[destinationCard];
-
-    //         targetPos = destinationCardView.transform.position + new Vector3(0,faceUp_padding_y,0);
+    //     for (int i = 0; i < this.tableuPositions.Length; i++)
+    //     {
+    //         var pos = tableuPositions[i];
+    //         float distance = Mathf.Abs(releasedCardPosition.x - pos.x);
+    //         if(distance < minDistance){
+    //             minDistance = distance;
+    //             closestColumnToPoint = i;
+    //         }
     //     }
 
+    //     if(IsPointAboveTableu(releasedCardPosition)){
+    //             //We are trying to place on foundation pile
+    //         if(closestColumnToPoint < 4){
+    //             return -(closestColumnToPoint+1);
+    //         } else {
+    //             return Zone.NotAZone;  //Means invalid column
+    //         }
+    //     } else{ 
+    //         // We are trying to place on tableu
+    //         return closestColumnToPoint;
+    //     }
 
-    //     // foreach()
     // }
 
     public void MoveCard(Move move){
         Card selectedCard = move.movedCards.First();
-        int targetColumn = move.destinationCard.column;
+        int targetColumn = move.to.index;
         
         CardView selectedCardView = this.cardData_to_cardView[selectedCard];
 
         Vector3 targetPos;
-        bool isTargetColumnEmpty = GameManager.Instance.tableu[targetColumn].faceUpCards.IsNullOrEmpty();
 
-        //Update cardViews references
+        CardView destinationCardView = null;
+
+        //Update the card below the one moved: flip and set card above to null.
         if(selectedCardView.cardBelow != null){
             if(selectedCardView.cardBelow.isFaceUp==false){
                 selectedCardView.cardBelow.TurnFaceUp(flipSpeed);
@@ -372,35 +387,40 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             selectedCardView.cardBelow.cardAbove = null;
         }
 
-        if(isTargetColumnEmpty == false){
-            CardColumn targetCardColumn = GameManager.Instance.tableu[targetColumn];
-            Card destinationCard = targetCardColumn.faceUpCards.Last();
-            CardView destinationCardView = this.cardData_to_cardView[destinationCard];
+        if(move.to.zone == Zone.Tableu){
+            bool isTargetColumnEmpty = GameManager.Instance.tableu[targetColumn].faceUpCards.IsNullOrEmpty();
+            if(isTargetColumnEmpty == false){
+                CardColumn targetCardColumn = GameManager.Instance.tableu[targetColumn];
+                Card destinationCard = targetCardColumn.faceUpCards.Last();
+                destinationCardView = this.cardData_to_cardView[destinationCard];
+                
+                targetPos = destinationCardView.transform.position - new Vector3(0,faceUp_padding_y,0);
 
-            // float padding = ScreenSpace_To_WorldSpace((int)destinationCardView.smallSuit.size.y);
-            targetPos = destinationCardView.transform.position - new Vector3(0,faceUp_padding_y,0);
-            // targetPos = destinationCardView.transform.position + new Vector3(0,ScreenSpace_To_WorldSpace((int)faceUp_padding_y),0);
-            
-            //Update cardview's cardabove/cardbelow for selected and destination card
-            selectedCardView.cardBelow = destinationCardView;
-            destinationCardView.cardAbove = selectedCardView;
+                selectedCardView.SetSortingOrderAndZDepth((int)(-destinationCardView.transform.position.z));
+                targetPos.z = selectedCardView.transform.position.z; //Update Z depth
 
-            selectedCardView.SetSortingOrderAndZDepth((int)(-destinationCardView.transform.position.z));
-            targetPos.z = selectedCardView.transform.position.z; //Update Z depth
-            
-            //Update cardViews references
-            destinationCardView.cardAbove = selectedCardView;
-            selectedCardView.cardBelow = destinationCardView;
+            }else{
+                targetPos = this.tableuPositions[targetColumn];
+                selectedCardView.SetSortingOrderAndZDepth(0);
+            }
+
+        }else if(move.to.zone == Zone.Foundation){
+            targetPos = this.foundationPilesPositions[targetColumn];
+            int cardsBelowSelection = GameManager.Instance.foundationPiles[targetColumn].cards.Count;
+            selectedCardView.SetSortingOrderAndZDepth(cardsBelowSelection);
         }else{
-            targetPos = this.tableuPositions[targetColumn];
-            selectedCardView.SetSortingOrderAndZDepth(0);
+            throw new Exception("Move is invalid");
         }
 
+        //Update selectedCard and destination card references
+        selectedCardView.cardBelow = destinationCardView;
+        if(destinationCardView!=null){
+            destinationCardView.cardAbove = selectedCardView;
+        }
         
 
         //Reuse recursive logic to move the card to the target spot.
         selectedCardView.MoveToPoint(targetPos);
-        
 
         //Fix sorting order
         // selectedCard.cardsBelow.Count = 3
@@ -409,7 +429,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
     public void NotifyLegalMove(Move move)
     {
         MoveCard(move);
-        
     }
 
     public void NotifyIllegalMove(IllegalMove move)

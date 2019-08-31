@@ -3,41 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum Suit{
-    Hearts=0,
-    Diamonds=1,
-    Clubs=2,
-    Spades=3,
-    None=4
-}
-
-public enum SuitColor{
-    Red = 0,
-    Black = 1
-}
-
-static class SuitMethods
-{
-    public static SuitColor GetSuitColor(this Suit s1)
-    {
-        if(s1 == Suit.Hearts || s1 == Suit.Diamonds){
-            return SuitColor.Red;
-        }
-        else if(s1 == Suit.Clubs || s1 == Suit.Spades){
-            return SuitColor.Black;
-        }
-
-        throw new Exception("Can't identify suit color. Did you add Jollys?");
-        
-    }
-}
-
 public class Card: ICloneable 
 {
     public readonly int value;
     public readonly Suit suit;
     public readonly SuitColor suitColor;
-    public int column = -1;
+    public Zone zone;
+    public int column = -1; //Only when zone == tableu
 
     public Card(int value, Suit suit)
     {
@@ -47,7 +19,9 @@ public class Card: ICloneable
     }
 
     public object Clone(){
-        return new Card(value, suit);
+        Card result = new Card(value, suit);
+        result.zone = this.zone;
+        return result;
     }
 
     public override string ToString(){

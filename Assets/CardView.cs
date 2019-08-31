@@ -72,15 +72,21 @@ public class CardView : MonoBehaviour
         if(isFaceUp){
             ChangeSortingLayer_Recursive("Default");
             isBeingDragged = false;
-            int closestColumn = SolitaireGraphics.Instance.GetClosestColumn(this.transform.position);
-            if(closestColumn >= 0){
-                GameManager.Instance.NotifyCardDropped_Tableu(cardData, closestColumn);
-            } else if(closestColumn >= -4 && closestColumn <= -1){
-                //Card dropped on Foundation pile
-                int suitIndex = (-closestColumn) + 1; 
-                Suit[] suits = Enum.GetValues(typeof(Suit)) as Suit[];
-                GameManager.Instance.NotifyCardDropped_FoundationPile(cardData, suits[suitIndex]);
-            }
+
+            TablePosition dropPosition = SolitaireGraphics.Instance.GetTablePosition(this.transform.position);
+            
+            // Zone dropZone = SolitaireGraphics.Instance.GetDropZone(this.transform.position);
+            // int dropIndex = SolitaireGraphics.Instance.GetClosestColumn(this.transform.position);
+
+            
+            GameManager.Instance.NotifyCardDropped(cardData, dropPosition);
+
+            // } else if(dropIndex >= -4 && dropIndex <= -1){
+            //     //Card dropped on Foundation pile
+            //     int suitIndex = (-dropIndex) + 1; 
+            //     Suit[] suits = Enum.GetValues(typeof(Suit)) as Suit[];
+            //     GameManager.Instance.NotifyCardDropped_FoundationPile(cardData, suits[suitIndex]);
+            // }
 
         }
     }
