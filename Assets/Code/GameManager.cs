@@ -123,7 +123,14 @@ public class GameManager : Singleton<GameManager>
             Card cardToDropOn = targetCardColumn.faceUpCards.Last();    //TODO: thorws sequence empry exception
             if(IsLegalMove(selectedCard, cardToDropOn)){
                 //Create move. 
-                List<Card> cardsBeingMoved = this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).ToList();
+                List<Card> cardsBeingMoved = new List<Card>();
+                cardsBeingMoved.Add(selectedCard);
+                //If the moved card comes from the tableu, there might other cards above that need to be moved aswell.
+                //This doens't happen for moves where the selected card comes from foundation piles, stock pile or waste pile.
+                if(selectedCard.column >= 0 ){
+                    cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard));
+                }
+
                 Card targetCard = this.tableu[targetColumn].faceUpCards.Last();
                 Move move = new Move(cardsBeingMoved, targetCard);
                 //Graphics react to move
@@ -136,7 +143,7 @@ public class GameManager : Singleton<GameManager>
                 startCardColum.faceUpCards = startCardColum.faceUpCards.TakeUntil(c => c == selectedCard).ToList();
                 targetCardColumn.faceUpCards.AddRange(move.movedCards);
                 foreach(Card card in move.movedCards){
-                    card.column = selectedCard.column;
+                    card.column = targetCard.column;
                 }
 
             } else{

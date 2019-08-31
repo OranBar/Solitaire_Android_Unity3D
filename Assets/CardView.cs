@@ -121,7 +121,13 @@ public class CardView : MonoBehaviour
         var tmpPosition = this.transform.position;
         tmpPosition.z = -(cardsBelow+1);
         this.transform.position = tmpPosition;
+
+        if(cardAbove != null){
+            cardAbove.SetSortingOrderAndZDepth(cardsBelow+1);
+        }
     }
+
+    
 
     public void IncreaseSortingOrder(int amountToIncrease){
         foreach(var spriteRenderer in mySpriteRenderers){
