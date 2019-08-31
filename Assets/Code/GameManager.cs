@@ -12,8 +12,8 @@ public class GameManager : Singleton<GameManager>
 //---------------------------
 
     public CardColumn[] tableu;
-    public List<Card> stockPile;
-    public List<Card> wastePile;
+    public Stack<Card> stockPile;
+    public Stack<Card> wastePile = new Stack<Card>();
     public Dictionary<Suit, List<Card>> suit_to_foundationPile;
     //public something stock;
     public DeckShuffler shuffler;
@@ -78,7 +78,7 @@ public class GameManager : Singleton<GameManager>
             tableu[i] = newCardColumn;
         }
         //Init Stock
-        this.stockPile = shuffler.DrawCards(shuffler.GetRemainigCardsCount());
+        this.stockPile = new Stack<Card>(shuffler.DrawCards(shuffler.GetRemainigCardsCount()));
         //Init Foundation Piles
         this.suit_to_foundationPile = new Dictionary<Suit, List<Card>>();
         foreach(Suit suit in Enum.GetValues(typeof(Suit))){
@@ -88,6 +88,15 @@ public class GameManager : Singleton<GameManager>
 
     public List<Card> GetFoundationPile(Suit suit){
         return this.suit_to_foundationPile[suit];
+    }
+
+    public bool IsLegalMove(Card draggedCard, Card destinationCard){
+        if(draggedCard.suitColor != destinationCard.suitColor){
+            if(destinationCard.value == (draggedCard.value + 1)){
+                return true;
+            }
+        }
+        return false;
     }
 
     public void NotifyCardDropped(Card selectedCard, int targetColumn){
@@ -130,17 +139,23 @@ public class GameManager : Singleton<GameManager>
                 Debug.Log("Illegal move");
             }
         }
-
     }
+    
+    public void NotifyStockMove(){
+        if(stockPile.Count > 0){
+            Card nextCard = stockPile.Pop();
+            wastePile.Push(nextCard);
 
-    public bool IsLegalMove(Card draggedCard, Card destinationCard){
-        if(draggedCard.suitColor != destinationCard.suitColor){
-            if(destinationCard.value == (draggedCard.value + 1)){
-                return true;
+            graphics.NotifyFlipStockCardMove(nextCard);
+        } else{
+            while(wastePile.Count > 0){
+                Card card = wastePile.Pop();
+                stockPile.Push(card);
             }
+            graphics.NotifyRestoreStockpileFromWastePile(stockPile);
         }
-        return false;
     }
+
 
 
 }

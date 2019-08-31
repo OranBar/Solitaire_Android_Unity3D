@@ -83,7 +83,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         return newGO;
     }
 
-    public void SetupGraphics(CardColumn[] tableu, List<Card> stockPileCards)
+    public void SetupGraphics(CardColumn[] tableu, Stack<Card> stockPileCards)
     {
         int columns_count = tableu.Length;
         
@@ -156,14 +156,16 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         }
     }
 
-    private void InstantiateStockPile(List<Card> stockPileCards, Vector2 suggestedCardSize, float y_padding_worldSpace, Vector3 topBarOffset)
+    private void InstantiateStockPile(Stack<Card> stockPileCards, Vector2 suggestedCardSize, float y_padding_worldSpace, Vector3 topBarOffset)
     {
         this.stockPile_pos = tableuPositions.Last() - topBarOffset + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
         
+        Card[] stockPileCardsArr = stockPileCards.ToArray();
+
         CardView previousCardView = null;
         for (int i = 0; i < stockPileCards.Count; i++)
         {
-            Card stockPileCard = stockPileCards[i];
+            Card stockPileCard = stockPileCardsArr[i];
             GameObject stockPileGO = this.InstantiateCardGameObject(suggestedCardSize, stockPile_pos, false, stockPileCard, i);
             CardView stockPileCardView = stockPileGO.GetComponent<CardView>();
             
@@ -175,6 +177,16 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             previousCardView = stockPileCardView;
             stockPileGO.name = stockPileCard.ToString()+"(Stock)";
         }
+
+        //Initialize Object to decect stock touches
+        GameObject stockPileClickDetectorGO = new GameObject("stockPileClickDetectorGO");
+        stockPileClickDetectorGO.AddComponent<StockClickDetector>();
+        stockPileClickDetectorGO.AddComponentCopy(previousCardView.GetComponent<BoxCollider2D>());
+        stockPileClickDetectorGO.transform.localScale = previousCardView.transform.localScale;
+        stockPileClickDetectorGO.transform.position = previousCardView.transform.position;
+
+        //Make sure it's above everything else so it catches the raycastings first.
+        stockPileClickDetectorGO.transform.SetZ(-52); 
     }
 
     private void InstantiateFoundationPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Suit suit, Vector3 tableuColumn_pos)
@@ -190,10 +202,11 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
     {
         Card card = tableu[column].GetTopCard();
 
-        GameObject cardGO = this.InstantiateCardGameObject(suggestedCardSize, stockPile_pos, false, card.suit, card.value, facedownCardPileBelow.Length);
+        GameObject cardGO = this.InstantiateCardGameObject(suggestedCardSize, stockPile_pos, false, card, facedownCardPileBelow.Length);
         CardView cardView = cardGO.GetComponent<CardView>();
-        cardView.cardData = tableu[column].faceUpCards[0];
-        this.cardData_to_cardView[cardView.cardData] = cardView;
+        
+        // cardView.cardData = tableu[column].faceUpCards[0];
+        // this.cardData_to_cardView[cardView.cardData] = cardView;
         
         cardGO.name = card.ToString();
 
@@ -213,8 +226,8 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         //TODO: assign value and suit
         GameObject faceDownCardGO = this.InstantiateCardGameObject(suggestedCardSize, stockPile_pos, false, faceDownCards_data[ii], cardsBelow: ii);
         CardView faceDownCardView = faceDownCardGO.GetComponent<CardView>();
-        faceDownCardView.cardData = faceDownCards_data[ii];
-        this.cardData_to_cardView[faceDownCardView.cardData] = faceDownCardView;
+        // faceDownCardView.cardData = faceDownCards_data[ii];
+        // this.cardData_to_cardView[faceDownCardView.cardData] = faceDownCardView;
         
         faceDownCardGO.name = faceDownCardView.cardData.ToString();
 
@@ -230,7 +243,13 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
     }
 
     private GameObject InstantiateCardGameObject(Vector2 suggestedCardSize, Vector3 pos, bool faceUp, Card card, int cardsBelow = 0){
-        return InstantiateCardGameObject(suggestedCardSize, pos, faceUp, card.suit, card.value, cardsBelow);
+        GameObject result = InstantiateCardGameObject(suggestedCardSize, pos, faceUp, card.suit, card.value, cardsBelow);
+        CardView cardView = result.GetComponent<CardView>();
+        
+        this.cardData_to_cardView[card] = cardView;
+        cardView.cardData = card;
+
+        return result;
     }
 
     private GameObject InstantiateCardGameObject(Vector2 suggestedCardSize, Vector3 pos, bool faceUp, Suit suit = Suit.None, int value = -1, int cardsBelow = 0){
@@ -377,5 +396,19 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
     public void NotifyIllegalMove(IllegalMove move)
     {
         this.cardData_to_cardView[move.card].UndoDrag();
+    }
+
+    public void NotifyFlipStockCardMove(Card revealedStockCard){
+        //Get the card on top of the stock. Move and flip it.
+        CardView revealedStockCardView = this.cardData_to_cardView[revealedStockCard];
+        //Flip and Move
+        Debug.Log("MEHERE");
+    }
+
+    public void NotifyRestoreStockpileFromWastePile(Stack<Card> restoredStockPile){
+        //Move all cards from wastePile_pos to stockPile_pos
+
+        //Flip and move those cards back to where they belong!
+
     }
 }
