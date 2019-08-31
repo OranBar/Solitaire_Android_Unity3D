@@ -16,7 +16,8 @@ public class GameManager : Singleton<GameManager>
     public Stack<Card> wastePile = new Stack<Card>();
     public Dictionary<Suit, List<Card>> suit_to_foundationPile;
     //public something stock;
-    public DeckShuffler shuffler;
+    // public DeckShuffler shuffler, shufflerClone;
+    public DeckShuffler shufflerClone;
 
     public List<Move> movesHistory = new List<Move>();
 
@@ -38,26 +39,32 @@ public class GameManager : Singleton<GameManager>
         
     }
 
-    void BeginGame(){
-        InitGame();
+    [ContextMenu("InitGame")]
+    public void InitGame()
+    {
+        DeckShuffler shuffler = new DeckShuffler();
+        shuffler.ShuffleDeck();
+
+        InitGame(shuffler);     
     }
 
-    [ContextMenu("InitGame")]
-    private void InitGame()
+    public void InitGame(DeckShuffler seed)
     {
-        shuffler = new DeckShuffler();
+        shufflerClone = seed.Clone() as DeckShuffler;
 
-        SetUpTable(columns_count);
+        SetUpTable(columns_count, seed);
         graphics.SetupGraphics(tableu, stockPile);        
     }
+
+    public void RestartGame(){
+        InitGame(shufflerClone);
+    }
     
-    private void SetUpTable(int noOfColumns)
+    private void SetUpTable(int noOfColumns, DeckShuffler shuffler)
     {
         if(noOfColumns > 9){
             throw new Exception("Too Many Columns. Please choose a number <= 9");
         }
-
-        shuffler.ShuffleDeck();
         
         //Init Tableu
         tableu = new CardColumn[noOfColumns];

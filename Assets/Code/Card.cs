@@ -32,7 +32,7 @@ static class SuitMethods
     }
 }
 
-public class Card 
+public class Card: ICloneable 
 {
     public readonly int value;
     public readonly Suit suit;
@@ -44,6 +44,10 @@ public class Card
         this.value = value;
         this.suit = suit;
         this.suitColor = suit.GetSuitColor();
+    }
+
+    public object Clone(){
+        return new Card(value, suit);
     }
 
     public override string ToString(){
@@ -61,6 +65,7 @@ public class Card
             default: return value.ToString();
         }
     }
+
 }
 
 

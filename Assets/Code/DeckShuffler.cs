@@ -5,14 +5,20 @@ using System.Linq;
 using UnityEngine;
 using Random = System.Random;
 
-public class DeckShuffler 
+public class DeckShuffler : ICloneable
 {
-    
-    public string seed;
     
     private Stack<Card> deck;
 
-    public void InitCards(){
+
+    public DeckShuffler(){
+    }
+
+    public DeckShuffler(Stack<Card> deckSeed){
+        this.deck = deckSeed;
+    }
+
+    public void ShuffleDeck(){
         Random rnd = new Random();
         Card[] tmpDeck = new Card[52];
         List<int> availableIndexes = Enumerable.Range(0, 52).ToList();
@@ -29,11 +35,6 @@ public class DeckShuffler
         }
 
         this.deck = new Stack<Card>(tmpDeck);
-    }
-
-    public void ShuffleDeck()
-    {
-        InitCards();
     }
 
     public List<Card> DrawCards(int noOfCardsToDraw)
@@ -56,5 +57,11 @@ public class DeckShuffler
 
     public int GetRemainigCardsCount(){
         return this.deck.Count;
+    }
+
+    public object Clone()
+    {
+        var deckSeed = deck.ToList().Select(c => c.Clone()).Cast<Card>().Reverse();
+        return new DeckShuffler(new Stack<Card>(deckSeed));
     }
 }

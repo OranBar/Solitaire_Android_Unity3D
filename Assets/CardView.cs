@@ -107,9 +107,8 @@ public class CardView : MonoBehaviour
     }
 
     private void MoveTowardsPoint_Recursive(Vector3 targetPosition, float speed){
-        //TODO: try adding deltaTime
         transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref currentVelocity, speed * Time.deltaTime);
-        if(cardAbove != null){
+        if(cardAbove != null && cardAbove.isFaceUp){
             targetPosition.z = cardAbove.transform.position.z;
             cardAbove.MoveTowardsPoint_Recursive(targetPosition - offsetToCardAbove, speed * 1.5f);
         }

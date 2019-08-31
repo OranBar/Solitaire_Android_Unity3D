@@ -87,6 +87,10 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
     public void SetupGraphics(CardColumn[] tableu, Stack<Card> stockPileCards)
     {
+        if(cardsContainer!=null){
+            GameObject.Destroy(cardsContainer.gameObject);
+        }
+
         int columns_count = tableu.Length;
         
         //Create cards container empty gameobject - Stored as class variable for easy access in insantiation methods
@@ -182,6 +186,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
         //Initialize Object to decect stock touches
         GameObject stockPileClickDetectorGO = new GameObject("stockPileClickDetectorGO");
+        stockPileClickDetectorGO.transform.parent = cardsContainer;
         stockPileClickDetectorGO.AddComponent<StockClickDetector>();
         stockPileClickDetectorGO.AddComponentCopy(previousCardView.GetComponent<BoxCollider2D>());
         stockPileClickDetectorGO.transform.localScale = previousCardView.transform.localScale;
@@ -195,6 +200,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         go.GetComponent<CardView>().bigSuit.enabled = false;
         go.transform.SetZ(1);
         go.name = "Stock_Fondo";
+        go.transform.parent = cardsContainer;
     }
 
     private void InstantiateFoundationPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Suit suit, Vector3 tableuColumn_pos)
