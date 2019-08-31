@@ -28,7 +28,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
     private Vector3 stockPile_pos;
 
-    private Vector3[] foundationPilesPositions = new Vector3[4];
+    private Vector3[] foundationPilesPositions;
     private Vector3[] tableuPositions;
     private Dictionary<Card, CardView> cardData_to_cardView = new Dictionary<Card, CardView>();
     private Transform cardsContainer;
@@ -88,7 +88,9 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
     public void SetupGraphics(CardColumn[] tableu, Stack<Card> stockPileCards)
     {
-        if(cardsContainer!=null){
+        this.foundationPilesPositions = new Vector3[4];
+        this.cardData_to_cardView = new Dictionary<Card, CardView>();
+        if(this.cardsContainer!=null){
             GameObject.Destroy(cardsContainer.gameObject);
         }
 
@@ -331,10 +333,11 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             if(closestColumnToPoint < 4){
                 return new TablePosition(Zone.Foundation, (closestColumnToPoint));
             } else if(closestColumnToPoint == this.tableuPositions.Length-1){
-                return new TablePosition(Zone.Waste, 1);
-            } else {
-                //We are trying to place between foundation and right edge. No moves towards this zone are allowed.
+                //This is stock pile
                 return new TablePosition(Zone.NotAZone, -1);
+            } else {
+                //Place between foundation and right edge. We'll generalize and say it's always Waste pile
+                return new TablePosition(Zone.Waste, 1);
             }
         } else{ 
             // We are trying to place on tableu

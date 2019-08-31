@@ -12,8 +12,8 @@ public class GameManager : Singleton<GameManager>
 //---------------------------
 
     public CardColumn[] tableu;
-    public Stack<Card> stockPile  = new Stack<Card>();
-    public Stack<Card> wastePile = new Stack<Card>();
+    public Stack<Card> stockPile;
+    public Stack<Card> wastePile;
     // public Dictionary<Suit, Stack<Card>> suit_to_foundationPile;
     public FoundationPile[] foundationPiles;
     //public something stock;
@@ -59,6 +59,10 @@ public class GameManager : Singleton<GameManager>
 
     public void InitGame(DeckShuffler seed)
     {
+        this.stockPile = new Stack<Card>();
+        this.wastePile = new Stack<Card>();
+        this.movesHistory = new List<Move>();
+
         shufflerClone = seed.Clone() as DeckShuffler;
 
         SetUpTable(columns_count, seed);
@@ -98,8 +102,7 @@ public class GameManager : Singleton<GameManager>
         //Init Stock
         this.stockPile = new Stack<Card>(shuffler.DrawCards(shuffler.GetRemainigCardsCount()));
         foreach(var stockCard in stockPile){
-            stockCard.zone = Zone.Tableu;
-            
+            stockCard.zone = Zone.Waste;
         }
         //Init Foundation Piles
         // this.suit_to_foundationPile = new Dictionary<Suit, List<Card>>();
@@ -283,6 +286,7 @@ public class GameManager : Singleton<GameManager>
             if (selectedCard.zone == Zone.Tableu)
             {  //NOW
                 cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).Skip(1));
+                this.tableu[selectedCard.column].faceUpCards = this.tableu[selectedCard.column].faceUpCards.TakeUntil(c => c == selectedCard).ToList();
                 if(this.tableu[selectedCard.column].faceDownCards.Count > 0){
                     Card faceDownCardToFlip = this.tableu[selectedCard.column].faceDownCards.Pop();
                     this.tableu[selectedCard.column].faceUpCards.Add(faceDownCardToFlip);
