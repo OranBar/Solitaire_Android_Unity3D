@@ -283,6 +283,10 @@ public class GameManager : Singleton<GameManager>
             if (selectedCard.zone == Zone.Tableu)
             {  //NOW
                 cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).Skip(1));
+                if(this.tableu[selectedCard.column].faceDownCards.Count > 0){
+                    Card faceDownCardToFlip = this.tableu[selectedCard.column].faceDownCards.Pop();
+                    this.tableu[selectedCard.column].faceUpCards.Add(faceDownCardToFlip);
+                }
             }
 
             Move move = new Move(cardsBeingMoved, from, dropPosition);
