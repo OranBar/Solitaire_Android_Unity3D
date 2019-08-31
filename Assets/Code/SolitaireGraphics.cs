@@ -301,6 +301,14 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
     public static int INVALID_COLUMN = -6;
 
+
+    public bool IsPointAboveTableu(Vector2 point){
+        Vector2 cardSize_worldSpace = this.ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
+        float aboveTableu_YCoord = this.tableuPositions[0].y - (cardSize_worldSpace.y);
+
+        return point.y > aboveTableu_YCoord;
+    }
+    
     public int GetClosestColumn(Vector2 releasedCardPosition){
         float minDistance = float.MaxValue;
         int closestColumnToPoint = -1;
@@ -315,10 +323,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             }
         }
 
-        Vector2 cardSize_worldSpace = this.ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
-        float aboveTableu_YCoord = this.tableuPositions[0].y - (cardSize_worldSpace.y);
-
-        if(releasedCardPosition.y > aboveTableu_YCoord){
+        if(IsPointAboveTableu(releasedCardPosition)){
             //We are trying to place on foundation pile
             if(closestColumnToPoint < 4){
                 return -(closestColumnToPoint+1);
