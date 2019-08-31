@@ -103,7 +103,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         //Compute TopBarOffset
         Vector3 topBarOffset = ComputeTopBarOffset();
 
-        //Init deck pile object
+        //Init stock pile object
         InstantiateStockPile(stockPileCards, suggestedCardSize, y_padding_worldSpace, topBarOffset);
 
         //Place cards on tableu with animations
@@ -189,6 +189,12 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
         //Make sure it's above everything else so it catches the raycastings first.
         stockPileClickDetectorGO.transform.SetZ(-52); 
+
+        //Make fondo of stock object
+        var go = InstantiateAndScale(foundationPilePrefab, suggestedCardSize,stockPile_pos);
+        go.GetComponent<CardView>().bigSuit.enabled = false;
+        go.transform.SetZ(1);
+        go.name = "Stock_Fondo";
     }
 
     private void InstantiateFoundationPile(Vector2 suggestedCardSize, float y_padding_worldSpace, Suit suit, Vector3 tableuColumn_pos)
@@ -417,6 +423,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         revealedStockCardView.transform.DOMove(targetMovePoint, flipSpeed);
         revealedStockCardView.TurnFaceUp(flipSpeed);
 
+        //Scoop left the upmost two cards in the pile, if we are now exceeding 3 cards
         if(wastePileCount >= 3){
             for (int i = 0; i < 2; i++)
             {
@@ -428,8 +435,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
                 cardView.transform.DOMove(movePoint, flipSpeed);
             }
         }
-
-        Debug.Log("MEHERE");
     }
 
     public void NotifyRestoreStockpileFromWastePile(List<Card> restoredStockPile){
