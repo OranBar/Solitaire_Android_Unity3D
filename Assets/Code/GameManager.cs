@@ -104,7 +104,7 @@ public class GameManager : Singleton<GameManager>
         }else{
             //Card was dropped on one of the tableu's columns
             CardColumn targetCardColumn = this.tableu[targetColumn];
-            Card cardToDropOn = targetCardColumn.faceUpCards.Last();
+            Card cardToDropOn = targetCardColumn.faceUpCards.Last();    //TODO: thorws sequence empry exception
             if(IsLegalMove(selectedCard, cardToDropOn)){
                 //Create move. 
                 List<Card> cardsBeingMoved = this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).ToList();
@@ -116,6 +116,13 @@ public class GameManager : Singleton<GameManager>
                 movesHistory.Add(move);
                 Debug.Log("Legal move");
                 //Update Game data
+                CardColumn startCardColum = this.tableu[selectedCard.column];
+                startCardColum.faceUpCards = startCardColum.faceUpCards.TakeUntil(c => c == selectedCard).ToList();
+                targetCardColumn.faceUpCards.AddRange(move.movedCards);
+                foreach(Card card in move.movedCards){
+                    card.column = selectedCard.column;
+                }
+
             } else{
                 //Put card back where it began
                 IllegalMove move = new IllegalMove(selectedCard);

@@ -210,7 +210,8 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
     private GameObject InstantiateFaceDownCard(Vector2 suggestedCardSize, CardView[] cardPile, List<Card> faceDownCards_data, int ii)
     {
-        GameObject faceDownCardGO = this.InstantiateCardGameObject(suggestedCardSize, stockPile_pos, false, cardsBelow: ii);
+        //TODO: assign value and suit
+        GameObject faceDownCardGO = this.InstantiateCardGameObject(suggestedCardSize, stockPile_pos, false, faceDownCards_data[ii], cardsBelow: ii);
         CardView faceDownCardView = faceDownCardGO.GetComponent<CardView>();
         faceDownCardView.cardData = faceDownCards_data[ii];
         this.cardData_to_cardView[faceDownCardView.cardData] = faceDownCardView;
@@ -324,6 +325,15 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
         Vector3 targetPos;
         bool isTargetColumnEmpty = GameManager.Instance.tableu[targetColumn].faceUpCards.IsNullOrEmpty();
+
+        //Update cardViews references
+        if(selectedCardView.cardBelow != null){
+            if(selectedCardView.cardBelow.isFaceUp==false){
+                selectedCardView.cardBelow.TurnFaceUp(flipSpeed);
+            }
+            selectedCardView.cardBelow.cardAbove = null;
+        }
+
         if(isTargetColumnEmpty == false){
             CardColumn targetCardColumn = GameManager.Instance.tableu[targetColumn];
             Card destinationCard = targetCardColumn.faceUpCards.Last();
@@ -339,13 +349,20 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
             selectedCardView.SetSortingOrderAndZDepth((int)(-destinationCardView.transform.position.z));
             targetPos.z = selectedCardView.transform.position.z; //Update Z depth
+            
+            //Update cardViews references
+            destinationCardView.cardAbove = selectedCardView;
+            selectedCardView.cardBelow = destinationCardView;
         }else{
             targetPos = this.tableuPositions[targetColumn];
             selectedCardView.SetSortingOrderAndZDepth(0);
         }
 
+        
+
         //Reuse recursive logic to move the card to the target spot.
         selectedCardView.MoveToPoint(targetPos);
+        
 
         //Fix sorting order
         // selectedCard.cardsBelow.Count = 3
