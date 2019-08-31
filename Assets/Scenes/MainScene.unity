@@ -830,6 +830,7 @@ MonoBehaviour:
   y_padding: 30
   faceDown_padding_y: 0.17
   faceUp_padding_y: 0.32
+  stockPile_padding_x: 0.3
   easeFunction:
     serializedVersion: 2
     m_Curve:

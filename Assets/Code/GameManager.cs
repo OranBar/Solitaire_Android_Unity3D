@@ -146,7 +146,7 @@ public class GameManager : Singleton<GameManager>
             Card nextCard = stockPile.Pop();
             wastePile.Push(nextCard);
 
-            graphics.NotifyFlipStockCardMove(nextCard);
+            graphics.NotifyFlipStockCardMove(nextCard, wastePile.Count);
         } else{
             while(wastePile.Count > 0){
                 Card card = wastePile.Pop();

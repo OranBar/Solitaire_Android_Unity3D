@@ -8,5 +8,5 @@ public interface ISolitaireGraphics
     void NotifyLegalMove(Move move);
     void NotifyIllegalMove(IllegalMove move);
     void NotifyRestoreStockpileFromWastePile(Stack<Card> restoredStockPile);
-    void NotifyFlipStockCardMove(Card nextCard);
+    void NotifyFlipStockCardMove(Card nextCard, int cardsInWastePile);
 }

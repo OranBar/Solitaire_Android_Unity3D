@@ -15,12 +15,14 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
     public int y_padding = 50;
     public float faceDown_padding_y, faceUp_padding_y;
 
+    public float stockPile_padding_x = 0.3215505f;
+
     public AnimationCurve easeFunction;
     public float cardToTableu_animDuration = 0.6f;
     public float flipSpeed = 0.6f;
 
 //---------------------------
-    
+
     protected override void InitTon(){ }
 
 
@@ -398,9 +400,19 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         this.cardData_to_cardView[move.card].UndoDrag();
     }
 
-    public void NotifyFlipStockCardMove(Card revealedStockCard){
+    public void NotifyFlipStockCardMove(Card revealedStockCard, int cardsInWastePile){
         //Get the card on top of the stock. Move and flip it.
         CardView revealedStockCardView = this.cardData_to_cardView[revealedStockCard];
+        Vector3 cardSize = ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
+        
+        
+        Vector3 targetMovePoint = revealedStockCardView.transform.position;
+        float mult = Mathf.Max(4 - cardsInWastePile, 1);
+        targetMovePoint.x = targetMovePoint.x - cardSize.x * (2/3f);
+        targetMovePoint = targetMovePoint - (new Vector3(stockPile_padding_x,0,0) * mult);
+
+        revealedStockCardView.transform.DOMove(targetMovePoint, flipSpeed);
+        revealedStockCardView.TurnFaceUp(flipSpeed);
         //Flip and Move
         Debug.Log("MEHERE");
     }
