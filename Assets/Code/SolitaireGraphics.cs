@@ -400,27 +400,47 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         this.cardData_to_cardView[move.card].UndoDrag();
     }
 
-    public void NotifyFlipStockCardMove(Card revealedStockCard, int cardsInWastePile){
+    public void NotifyFlipStockCardMove(Card revealedStockCard, List<Card> wastePile){
+        int wastePileCount = wastePile.Count;
+
         //Get the card on top of the stock. Move and flip it.
         CardView revealedStockCardView = this.cardData_to_cardView[revealedStockCard];
         Vector3 cardSize = ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
         
         
         Vector3 targetMovePoint = revealedStockCardView.transform.position;
-        float mult = Mathf.Max(4 - cardsInWastePile, 1);
+        float mult = Mathf.Max(3 - wastePileCount, 1);
         targetMovePoint.x = targetMovePoint.x - cardSize.x * (2/3f);
         targetMovePoint = targetMovePoint - (new Vector3(stockPile_padding_x,0,0) * mult);
 
+        //Flip and Move
         revealedStockCardView.transform.DOMove(targetMovePoint, flipSpeed);
         revealedStockCardView.TurnFaceUp(flipSpeed);
-        //Flip and Move
+
+        if(wastePileCount >= 3){
+            for (int i = 0; i < 2; i++)
+            {
+                Card cardToMoveLeft = wastePile[i];
+                CardView cardView = this.cardData_to_cardView[cardToMoveLeft];
+                
+                Vector3 movePoint = cardView.transform.position - new Vector3(stockPile_padding_x,0,0);
+
+                cardView.transform.DOMove(movePoint, flipSpeed);
+            }
+        }
+
         Debug.Log("MEHERE");
     }
 
-    public void NotifyRestoreStockpileFromWastePile(Stack<Card> restoredStockPile){
-        //Move all cards from wastePile_pos to stockPile_pos
-
+    public void NotifyRestoreStockpileFromWastePile(List<Card> restoredStockPile){
         //Flip and move those cards back to where they belong!
+        foreach(Card card in restoredStockPile){
+            CardView cardView = this.cardData_to_cardView[card];
+            
+            cardView.transform.DOMove(stockPile_pos, flipSpeed);
+            cardView.TurnFaceDown(flipSpeed);
+        }
+
 
     }
 }

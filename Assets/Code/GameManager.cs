@@ -143,16 +143,20 @@ public class GameManager : Singleton<GameManager>
     
     public void NotifyStockMove(){
         if(stockPile.Count > 0){
+            graphics.NotifyFlipStockCardMove(stockPile.Peek(), new List<Card>(wastePile));
+
+            //Update Game Data
             Card nextCard = stockPile.Pop();
             wastePile.Push(nextCard);
 
-            graphics.NotifyFlipStockCardMove(nextCard, wastePile.Count);
+            // graphics.NotifyFlipStockCardMove(nextCard, wastePile.Count);
         } else{
+            graphics.NotifyRestoreStockpileFromWastePile(new List<Card>(wastePile));
+
             while(wastePile.Count > 0){
                 Card card = wastePile.Pop();
                 stockPile.Push(card);
             }
-            graphics.NotifyRestoreStockpileFromWastePile(stockPile);
         }
     }
 

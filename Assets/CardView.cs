@@ -48,6 +48,15 @@ public class CardView : MonoBehaviour
                 .Append(this.transform.DORotate(new Vector3(0, 0, 0), flipSpeed / 2f));
     }
 
+    public void TurnFaceDown(float flipSpeed){
+        Sequence flipSequence = DOTween.Sequence();
+        
+        flipSequence
+        .Append(this.transform.DORotate(new Vector3(0, -90, 0), flipSpeed / 2f)
+            .OnComplete(() => { front.SetActive(false); back.SetActive(true); isFaceUp=false;}))
+                .Append(this.transform.DORotate(new Vector3(0, 0, 0), flipSpeed / 2f));
+    }
+
     void OnMouseDown()
     {
         if(isFaceUp){
