@@ -457,7 +457,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         CardView revealedStockCardView = this.cardData_to_cardView[revealedStockCard];
         revealedStockCardView.enabled = true;
         Vector3 cardSize = ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
-        revealedStockCardView.SetSortingOrderAndZDepth(wastePileCount);
+        revealedStockCardView.SetSortingOrderAndZDepth(wastePileCount-1);
         
         Vector3 targetMovePoint = revealedStockCardView.transform.position;
         float mult = Mathf.Max(3 - wastePileCount, 1);
