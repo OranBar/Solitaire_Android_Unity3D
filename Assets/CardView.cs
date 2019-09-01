@@ -17,7 +17,12 @@ public class CardView : MonoBehaviour
     private List<SpriteRenderer> mySpriteRenderers;
 
 
-    public CardView cardAbove, cardBelow;
+    public CardView CardAbove{
+        get{ return SolitaireGraphics.Instance.GetCardAbove(this);}
+    }
+    public CardView CardBelow{
+        get{ return SolitaireGraphics.Instance.GetCardBelow(this);}
+    }
     public bool isFaceUp;
 
     public Card cardData;
@@ -74,6 +79,11 @@ public class CardView : MonoBehaviour
         if(PauseMenu.Instance.isPaused){return;}
 
         if(isFaceUp){
+            if(this.cardData.zone == Zone.Waste){
+                if(this.CardAbove != null && this.CardAbove.isFaceUp){
+                    return; //You can't take cards from the pile if they are not at the top.
+                }
+            }
             ChangeSortingLayer_Recursive("Default");
             isBeingDragged = false;
 
@@ -127,13 +137,15 @@ public class CardView : MonoBehaviour
 
     private void MoveTowardsPoint_Recursive(Vector3 targetPosition, float speed){
         transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref currentVelocity, speed * Time.deltaTime);
-        if(cardAbove != null && cardAbove.isFaceUp){
-            targetPosition.z = cardAbove.transform.position.z;
-            cardAbove.MoveTowardsPoint_Recursive(targetPosition - offsetToCardAbove, speed * 1.5f);
+        
+        
+        if(this.cardData.zone == Zone.Tableu && CardAbove != null && CardAbove.isFaceUp){
+            targetPosition.z = CardAbove.transform.position.z;
+            CardAbove.MoveTowardsPoint_Recursive(targetPosition - offsetToCardAbove, speed * 1.5f);
         }
     }
 
-    public void SetSortingOrderAndZDepth(int cardsBelow){
+    public void SetSortingOrderAndZDepth(int cardsBelow, bool executeRecursively=true){
         // int delta = (cardsBelow+1) + (int) this.transform.position.z;
         SetSortingOrder(cardsBelow);
         
@@ -141,8 +153,8 @@ public class CardView : MonoBehaviour
         tmpPosition.z = -(cardsBelow+1);
         this.transform.position = tmpPosition;
 
-        if(cardAbove != null){
-            cardAbove.SetSortingOrderAndZDepth(cardsBelow+1);
+        if(executeRecursively && CardAbove != null){
+            CardAbove.SetSortingOrderAndZDepth(cardsBelow+1);
         }
     }
 
@@ -169,8 +181,8 @@ public class CardView : MonoBehaviour
 
     public void ChangeSortingLayer_Recursive(string newLayerName){
         ChangeSortingLayer(newLayerName);
-        if(this.cardAbove != null){
-            this.cardAbove.ChangeSortingLayer_Recursive(newLayerName);
+        if(this.CardAbove != null){
+            this.CardAbove.ChangeSortingLayer_Recursive(newLayerName);
         }
     }
 

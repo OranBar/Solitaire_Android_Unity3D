@@ -25,13 +25,7 @@ public class GameManager : Singleton<GameManager>
     protected override void InitTon(){ 
         graphics = this.GetComponent<ISolitaireGraphics>();
 
-        Suit[] suits = new Suit[]{Suit.Hearts, Suit.Diamonds, Suit.Clubs, Suit.Spades};
-        foundationPiles = new FoundationPile[suits.Length];
-        for (int i = 0; i < suits.Length; i++)
-        {
-            FoundationPile pile = new FoundationPile(suits[i]);
-            foundationPiles[i] = pile;
-        }
+        
 
         Debug.Assert(graphics != null, "Couldn't find class implementing the ISolitaireGraphics on GameObject with GameManager component ("+this.gameObject.name+"", this.gameObject);
     }
@@ -62,6 +56,14 @@ public class GameManager : Singleton<GameManager>
         this.stockPile = new Stack<Card>();
         this.wastePile = new Stack<Card>();
         this.movesHistory = new List<Move>();
+
+        Suit[] suits = new Suit[]{Suit.Hearts, Suit.Diamonds, Suit.Clubs, Suit.Spades};
+        foundationPiles = new FoundationPile[suits.Length];
+        for (int i = 0; i < suits.Length; i++)
+        {
+            FoundationPile pile = new FoundationPile(suits[i]);
+            foundationPiles[i] = pile;
+        }
 
         shufflerClone = seed.Clone() as DeckShuffler;
 
@@ -196,6 +198,87 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
+    public Card GetCardAbove(Card card){
+        if(card.zone == Zone.Tableu){
+            CardColumn cardColumn = this.tableu[card.column];
+            
+            List<Card> faceUpCards = cardColumn.faceUpCards;
+            if(faceUpCards.Contains(card)){
+                int index = faceUpCards.IndexOf(card);
+                if(index+1 < faceUpCards.Count ){
+                    return faceUpCards[index+1];
+                }else{
+                    return null;
+                }
+            }
+
+            List<Card> faceDownCards = cardColumn.faceDownCards.Reverse().ToList();
+            if(faceDownCards.Contains(card)){
+                int index = faceDownCards.IndexOf(card);
+                if(index+1 < faceDownCards.Count){
+                    return faceDownCards[index+1];
+                }else{
+                    return null;
+                }
+            }
+        }
+        if(card.zone == Zone.Waste){
+            var wastePileCards = this.wastePile.Reverse().ToList();
+            if(wastePileCards.Contains(card)){
+                int index = wastePileCards.IndexOf(card);
+                if(index+1 < wastePileCards.Count ){
+                    return wastePileCards[index+1];
+                }else{
+                    return null;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public Card GetCardBelow(Card card){
+        if(card.zone == Zone.Tableu){
+            CardColumn cardColumn = this.tableu[card.column];
+            
+            List<Card> faceUpCards = cardColumn.faceUpCards;
+            List<Card> faceDownCards = cardColumn.faceDownCards.Reverse().ToList();
+            
+            if(faceUpCards.Contains(card)){
+                int index = faceUpCards.IndexOf(card);
+                if(index-1 > 0){
+                    return faceUpCards[index-1];
+                }else{
+                    if(faceDownCards.Count > 0){
+                        return faceDownCards[0];
+                    }
+                }
+            }
+
+            if(faceDownCards.Contains(card)){
+                int index = faceDownCards.IndexOf(card);
+                if(index-1 > 0){
+                    return faceDownCards[index-1];
+                }else{
+                    return null;
+                }
+            }
+        }
+        if(card.zone == Zone.Waste){
+            var wastePileCards = this.wastePile.Reverse().ToList();
+            if(wastePileCards.Contains(card)){
+                int index = wastePileCards.IndexOf(card);
+                if(index-1 > 0){
+                    return wastePileCards[index-1];
+                }else{
+                    return null;
+                }
+            }
+        }
+
+        return null;
+    }
+
 
     // public void NotifyCardDropped(Card selectedCard, TablePosition dropPosition){
     //     TablePosition from = new TablePosition(selectedCard.zone, selectedCard.column);
@@ -283,23 +366,26 @@ public class GameManager : Singleton<GameManager>
             cardsBeingMoved.Add(selectedCard);
             //If the moved card comes from the tableu, there might other cards above that need to be moved as well.
             //This doens't happen for moves where the selected card comes from foundation piles, stock pile or waste pile.
+           
+            if (selectedCard.zone == Zone.Tableu)
+            {  
+                cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).Skip(1));
+            }
+            Move move = new Move(cardsBeingMoved, from, dropPosition);
+            //Graphics react to move
+            graphics.NotifyLegalMove(move);
+            //Store move in history
+            Debug.Log("Legal move");
+            //Update Game data
             if (selectedCard.zone == Zone.Tableu)
             {  //NOW
-                cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).Skip(1));
+                // cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).Skip(1));
                 this.tableu[selectedCard.column].faceUpCards = this.tableu[selectedCard.column].faceUpCards.TakeUntil(c => c == selectedCard).ToList();
                 if(this.tableu[selectedCard.column].faceDownCards.Count > 0){
                     Card faceDownCardToFlip = this.tableu[selectedCard.column].faceDownCards.Pop();
                     this.tableu[selectedCard.column].faceUpCards.Add(faceDownCardToFlip);
                 }
             }
-
-            Move move = new Move(cardsBeingMoved, from, dropPosition);
-            //Graphics react to move
-            graphics.NotifyLegalMove(move);
-            //Store move in history
-            movesHistory.Add(move);
-            Debug.Log("Legal move");
-            //Update Game data
             // CardColumn startCardColum = this.tableu[selectedCard.column];
             // startCardColum.faceUpCards = startCardColum.faceUpCards.TakeUntil(c => c == selectedCard).ToList();
             // targetCardColumn.faceUpCards.AddRange(move.movedCards);
@@ -307,6 +393,7 @@ public class GameManager : Singleton<GameManager>
             //     card.column = dropPosition.index;
             // }
             ExecuteMove(move);
+            movesHistory.Add(move);
         } else{
             IllegalMove move = new IllegalMove(selectedCard);
             graphics.NotifyIllegalMove(move);

@@ -13,22 +13,6 @@ public class CardColumn
         return faceUpCards.Last();
     }
 
-
-    //I don't think we will ever use this
-    public void AddCard(Card newCard){
-        Debug.Log("Strange seeing you here");
-        
-        faceUpCards.Add(newCard);
-    }
-
-    public void FlipCard(){
-        Debug.Assert(faceUpCards.Count == 0);
-
-        if(faceDownCards.Any()){
-            Card cardToFlip = faceDownCards.Pop();
-            AddCard(cardToFlip);
-        }
-    }
     
     public List<Card> SelectCard(int faceUpCards_Index){
         Debug.Assert(faceUpCards_Index < faceUpCards.Count);
