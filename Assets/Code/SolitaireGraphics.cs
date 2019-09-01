@@ -396,8 +396,24 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             selectedCardView.cardAbove = null;
             //TODO
             //Enable again the carview of the card that is now at the top of the waste pile
-            //Don't move cards next time a card is drawn. We are missing one, so it's okay.
-            //Think about case when we miss 2 of those.
+
+            //Move top two cards left, so we can show a third again.
+            if(GameManager.Instance.wastePile.Count > 3){
+                Card topCard_wastePile = GameManager.Instance.wastePile.Peek();
+                CardView topCardView_wastePile = this.cardData_to_cardView[topCard_wastePile];
+                
+                CardView[] cardsToScoopRight = new CardView[2];
+                cardsToScoopRight[0] = topCardView_wastePile.cardBelow;
+                cardsToScoopRight[1] = topCardView_wastePile.cardBelow.cardBelow;
+                foreach(CardView card in cardsToScoopRight){
+                    // card.MoveToPoint(card.transform.position + new Vector3(stockPile_padding_x, 0, 0));    
+                    card.transform.DOMove(card.transform.position + new Vector3(stockPile_padding_x, 0, 0), flipSpeed);    
+                }
+
+                // topCardView_wastePile.transform.DOMove(this.transform.position + new Vector3(stockPile_padding_x, 0, 0), flipSpeed);    
+                // topCardView_wastePile.cardBelow.transform.DOMove(topCardView_wastePile.cardBelow.transform.position + new Vector3(stockPile_padding_x, 0, 0), flipSpeed);    
+            }
+
         }
 
         if(move.to.zone == Zone.Tableu){
