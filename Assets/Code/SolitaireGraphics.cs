@@ -131,7 +131,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
             CardView[] cardPile = new CardView[i];
             //FaceDown Card Pile
-            List<Card> faceDownCards_data = new List<Card>(tableu[i].faceDownCards);
+            List<Card> faceDownCards_data = new List<Card>(tableu[i].faceDownCards.Reverse());
             for (int ii = 0; ii < i; ii++)
             {
                 GameObject faceDownCardGO = InstantiateFaceDownCard(suggestedCardSize, cardPile, faceDownCards_data, ii);
@@ -394,6 +394,10 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
         if(move.from.zone == Zone.Waste){
             selectedCardView.cardAbove = null;
+            //TODO
+            //Enable again the carview of the card that is now at the top of the waste pile
+            //Don't move cards next time a card is drawn. We are missing one, so it's okay.
+            //Think about case when we miss 2 of those.
         }
 
         if(move.to.zone == Zone.Tableu){

@@ -13,12 +13,6 @@ public class CardColumn
         return faceUpCards.Last();
     }
 
-    public void AddCard(List<Card> newCards){
-        // foreach(Card card in newCards){
-        //     faceUpCards.Add
-        // }
-        faceUpCards.AddRange(newCards);
-    }
 
     //I don't think we will ever use this
     public void AddCard(Card newCard){
