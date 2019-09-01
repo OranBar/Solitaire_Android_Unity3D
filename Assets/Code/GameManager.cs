@@ -185,7 +185,7 @@ public class GameManager : Singleton<GameManager>
         }
         if(move.to.zone == Zone.Foundation){
             //Update foundation pile - Add moved card
-            foundationPiles[move.from.index].cards.Push(selectedCard);
+            foundationPiles[move.to.index].cards.Push(selectedCard);
         }
             
         //Update cards with new zone and column 

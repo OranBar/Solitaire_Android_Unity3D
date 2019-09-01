@@ -134,8 +134,8 @@ public class CardView : MonoBehaviour
     }
 
     public void SetSortingOrderAndZDepth(int cardsBelow){
-        int delta = (cardsBelow+1) + (int) this.transform.position.z;
-        IncreaseSortingOrder(delta+1);
+        // int delta = (cardsBelow+1) + (int) this.transform.position.z;
+        SetSortingOrder(cardsBelow);
         
         var tmpPosition = this.transform.position;
         tmpPosition.z = -(cardsBelow+1);
@@ -143,6 +143,13 @@ public class CardView : MonoBehaviour
 
         if(cardAbove != null){
             cardAbove.SetSortingOrderAndZDepth(cardsBelow+1);
+        }
+    }
+
+    public void SetSortingOrder(int cardsBelow){
+        for (int i = 0; i < mySpriteRenderers.Count; i++)
+        {
+            mySpriteRenderers[i].sortingOrder = (cardsBelow*10) + i;
         }
     }
 
