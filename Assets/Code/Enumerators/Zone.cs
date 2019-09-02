@@ -2,5 +2,6 @@
     Tableu = 0,
     Foundation = 1,
     Waste=2, 
-    NotAZone=3
+    Stock = 3,
+    NotAZone=4
 }

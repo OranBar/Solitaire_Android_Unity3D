@@ -46,9 +46,9 @@ public class Scoring : MonoBehaviour, ISolitaireEventsHandlers
         int scoreToAdd = 0;
         Card selectedCard = move.movedCards.First();
 
-        if(move.MoveResultsInCardFlipped()){
-            scoreToAdd += 5;
-        }
+        // if(move.MoveResultsInCardFlipped()){
+        //     scoreToAdd += 5;
+        // }
         if(move.to.zone == Zone.Foundation){
             scoreToAdd += 10;
         }
@@ -71,7 +71,8 @@ public class Scoring : MonoBehaviour, ISolitaireEventsHandlers
         GameManager.Instance.RegisterSolitaireEventsHandler(this);
     }
 
-  
-
-
+    public void NotifyUndoMove(Move moveToUndo)
+    {
+        throw new System.NotImplementedException();
+    }
 }

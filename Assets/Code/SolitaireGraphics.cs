@@ -21,7 +21,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         if(cardAbove == null){
             return null;
         }
-        return this.cardData_to_cardView[cardAbove];
+        return this.cardData_to_cardView[cardAbove.ToString()];
     }
 
     public CardView GetCardBelow(CardView cardView)
@@ -30,7 +30,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         if(cardBelow == null){
             return null;
         }
-        return this.cardData_to_cardView[cardBelow];
+        return this.cardData_to_cardView[cardBelow.ToString()];
     }
 
     public float stockPile_padding_x = 0.3215505f;
@@ -52,7 +52,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
     private Vector3[] foundationPilesPositions;
     private Vector3[] tableuPositions;
-    private Dictionary<Card, CardView> cardData_to_cardView = new Dictionary<Card, CardView>();
+    private Dictionary<string, CardView> cardData_to_cardView = new Dictionary<string, CardView>();
     private Transform cardsContainer;
 
     public Vector2 ComputeCardSize_ScreenSpace(int noOfColumns, int x_padding, int y_padding){
@@ -112,7 +112,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
     public void NotifyBeginGame(CardColumn[] tableu, Stack<Card> stockPileCards)
     {
         this.foundationPilesPositions = new Vector3[4];
-        this.cardData_to_cardView = new Dictionary<Card, CardView>();
+        this.cardData_to_cardView = new Dictionary<string, CardView>();
         if(this.cardsContainer!=null){
             GameObject.Destroy(cardsContainer.gameObject);
         }
@@ -296,7 +296,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         GameObject result = InstantiateCardGameObject(suggestedCardSize, pos, faceUp, card.suit, card.value, cardsBelow);
         CardView cardView = result.GetComponent<CardView>();
         
-        this.cardData_to_cardView[card] = cardView;
+        this.cardData_to_cardView[card.ToString()] = cardView;
         cardView.cardData = card;
 
         return result;
@@ -408,50 +408,34 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         Card selectedCard = move.movedCards.First();
         int targetColumn = move.to.index;
         
-        CardView selectedCardView = this.cardData_to_cardView[selectedCard];
+        CardView selectedCardView = this.cardData_to_cardView[selectedCard.ToString()];
 
         Vector3 targetPos;
 
         CardView destinationCardView = null;
 
-       
-
-        // if(selectedCardView.CardBelow != null){
-        //     if(selectedCardView.CardBelow.isFaceUp == false){
-        //         selectedCardView.CardBelow.TurnFaceUp(flipSpeed);
-        //     }
-        //     // selectedCardView.cardBelow.cardAbove = null;
+        // if(move.MoveResultsInCardFlipped()){
+        //     Card cardToFlip = move.GetCardToFlip();
+        //     this.cardData_to_cardView[cardToFlip].TurnFaceUp(flipSpeed);
         // }
 
-        if(move.MoveResultsInCardFlipped()){
-            Card cardToFlip = move.GetCardToFlip();
-            this.cardData_to_cardView[cardToFlip].TurnFaceUp(flipSpeed);
-        }
-
         if(move.from.zone == Zone.Tableu){
-            //Update the card below the one moved: flip.
+            //Flip Card
             if(selectedCardView.CardBelow != null && selectedCardView.CardBelow.isFaceUp == false){
-                if(GameManager.Instance.tableu[move.from.index].faceDownCards.Count > 0){
+                if(move.gameSnapshot.tableu[move.from.index].faceDownCards.Count > 0){
                     Card cardToFlip = GameManager.Instance.tableu[move.from.index].faceDownCards.Peek();
-                    this.cardData_to_cardView[cardToFlip].TurnFaceUp(flipSpeed);
+                    this.cardData_to_cardView[cardToFlip.ToString()].TurnFaceUp(flipSpeed);
                 }
-
             }
-
-            // if(move.movedCards.First().CardBelow != null){
-            //     this.cardData_to_cardView[move.movedCards.First().CardBelow].TurnFaceUp(flipSpeed);
-            // }
         }
 
         if(move.from.zone == Zone.Waste){
-            // selectedCardView.CardAbove = null;
-            //TODO
-            //Enable again the carview of the card that is now at the top of the waste pile
+            //Update Waste Pile (Remove/Add card)
 
             //Move top two cards left, so we can show a third again.
-            if(GameManager.Instance.wastePile.Count > 3){
+            if(move.gameSnapshot.wastePile.Count > 3){
                 Card topCard_wastePile = GameManager.Instance.wastePile.Peek();
-                CardView topCardView_wastePile = this.cardData_to_cardView[topCard_wastePile];
+                CardView topCardView_wastePile = this.cardData_to_cardView[topCard_wastePile.ToString()];
                 
                 CardView[] cardsToScoopRight = new CardView[2];
                 cardsToScoopRight[0] = topCardView_wastePile.CardBelow;
@@ -461,27 +445,16 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
                     card.transform.DOMove(card.transform.position + new Vector3(stockPile_padding_x, 0, 0), flipSpeed);    
                 }
 
-                // topCardView_wastePile.transform.DOMove(this.transform.position + new Vector3(stockPile_padding_x, 0, 0), flipSpeed);    
-                // topCardView_wastePile.cardBelow.transform.DOMove(topCardView_wastePile.cardBelow.transform.position + new Vector3(stockPile_padding_x, 0, 0), flipSpeed);    
             }
         }
 
-        //Update the card below the one moved: flip and set card above to null.
-        // if(selectedCardView.CardBelow != null){
-        //     if(selectedCardView.CardBelow.isFaceUp==false){
-        //         selectedCardView.CardBelow.TurnFaceUp(flipSpeed);
-        //     }
-        //     selectedCardView.CardBelow.CardAbove = null;
-        //     selectedCardView.CardBelow = null;
-        // }
-
-
         if(move.to.zone == Zone.Tableu){
+            //Move selected cards to new column
             bool isTargetColumnEmpty = GameManager.Instance.tableu[targetColumn].faceUpCards.IsNullOrEmpty();
             if(isTargetColumnEmpty == false){
-                CardColumn targetCardColumn = GameManager.Instance.tableu[targetColumn];
+                CardColumn targetCardColumn = move.gameSnapshot.tableu[targetColumn];
                 Card destinationCard = targetCardColumn.faceUpCards.Last();
-                destinationCardView = this.cardData_to_cardView[destinationCard];
+                destinationCardView = this.cardData_to_cardView[destinationCard.ToString()];
                 
                 targetPos = destinationCardView.transform.position - new Vector3(0,faceUp_padding_y,0);
 
@@ -494,26 +467,17 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
             }
 
         }else if(move.to.zone == Zone.Foundation){
+            //Move selected card to foundation
             targetPos = this.foundationPilesPositions[targetColumn];
-            int cardsBelowSelection = GameManager.Instance.foundationPiles[targetColumn].cards.Count;
+            int cardsBelowSelection = move.gameSnapshot.foundationPiles[targetColumn].cards.Count;
             selectedCardView.SetSortingOrderAndZDepth(cardsBelowSelection);
             targetPos.z = selectedCardView.transform.position.z;
         }else{
             throw new Exception("Move is invalid");
         }
 
-        //Update selectedCard and destination card references
-        // selectedCardView.CardBelow = destinationCardView;
-        // if(destinationCardView!=null){
-        //     destinationCardView.CardAbove = selectedCardView;
-        // }
-        
-
-        //Reuse recursive logic to move the card to the target spot.
         selectedCardView.MoveToPoint(targetPos);
 
-        //Fix sorting order
-        // selectedCard.cardsBelow.Count = 3
     }
 
     public void NotifyLegalMove(Move move)
@@ -523,7 +487,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
     public void NotifyIllegalMove(IllegalMove move)
     {
-        this.cardData_to_cardView[move.card].UndoDrag();
+        this.cardData_to_cardView[move.card.ToString()].UndoDrag();
     }
 
     public void NotifyFlipStockCardMove(Card revealedStockCard, List<Card> wastePile){
@@ -535,7 +499,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         // }
 
         //Get the card on top of the stock. Move and flip it.
-        CardView revealedStockCardView = this.cardData_to_cardView[revealedStockCard];
+        CardView revealedStockCardView = this.cardData_to_cardView[revealedStockCard.ToString()];
         // revealedStockCardView.enabled = true;
         Vector3 cardSize = ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
         revealedStockCardView.SetSortingOrderAndZDepth(wastePileCount-1, false);
@@ -552,33 +516,34 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
         //Scoop left the upmost two cards in the pile, if we are now exceeding 3 cards
         if(wastePileCount >= 3){
-            for (int i = 0; i < 2; i++)
-            {
-                Card cardToMoveLeft = wastePile[i];
-                CardView cardView = this.cardData_to_cardView[cardToMoveLeft];
-                
-                Vector3 movePoint = cardView.transform.position - new Vector3(stockPile_padding_x,0,0);
-
-                cardView.transform.DOMove(movePoint, flipSpeed);
-            }
+            ScoopCardsLeft(wastePile.Take(3).ToList());
         }
+    }
 
-        // CardView newCardBelow = wastePileCount >= 1 ? this.cardData_to_cardView[wastePile[0]] : null;
-        // revealedStockCardView.CardBelow = newCardBelow;
-        // if(newCardBelow != null){
-        //     this.cardData_to_cardView[wastePile[0]].CardAbove = revealedStockCardView.CardBelow;
-        // }
+    private void ScoopCardsLeft(List<Card> cardsToMove){
+        for (int i = 0; i < 2; i++)
+        {
+            Card cardToMoveLeft = cardsToMove[i];
+            CardView cardView = this.cardData_to_cardView[cardToMoveLeft.ToString()];
+            
+            Vector3 movePoint = cardView.transform.position - new Vector3(stockPile_padding_x,0,0);
+
+            cardView.transform.DOMove(movePoint, flipSpeed);
+        }
     }
 
     public void NotifyRestoreStockpileFromWastePile(List<Card> restoredStockPile){
         //Flip and move those cards back to where they belong!
         foreach(Card card in restoredStockPile){
-            CardView cardView = this.cardData_to_cardView[card];
+            CardView cardView = this.cardData_to_cardView[card.ToString()];
             
             cardView.transform.DOMove(stockPile_pos, flipSpeed);
             cardView.TurnFaceDown(flipSpeed);
         }
+    }
 
-
+    public void NotifyUndoMove(Move moveToUndo)
+    {
+        throw new NotImplementedException();
     }
 }

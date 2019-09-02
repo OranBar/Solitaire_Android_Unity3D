@@ -23,7 +23,7 @@ public class GameManager : Singleton<GameManager>
     // public DeckShuffler shuffler, shufflerClone;
     public DeckShuffler shufflerClone;
 
-    public List<Move> movesHistory = new List<Move>();
+    public Stack<Move> movesHistory = new Stack<Move>();
 
     protected override void InitTon(){ 
 
@@ -58,7 +58,7 @@ public class GameManager : Singleton<GameManager>
     {
         this.stockPile = new Stack<Card>();
         this.wastePile = new Stack<Card>();
-        this.movesHistory = new List<Move>();
+        this.movesHistory = new Stack<Move>();
 
         Suit[] suits = new Suit[]{Suit.Hearts, Suit.Diamonds, Suit.Clubs, Suit.Spades};
         foundationPiles = new FoundationPile[suits.Length];
@@ -300,20 +300,18 @@ public class GameManager : Singleton<GameManager>
             isValidMove = false;
         }
 
-        
-        
-
         if(isValidMove){
             List<Card> cardsBeingMoved = new List<Card>();
             cardsBeingMoved.Add(selectedCard);
             //If the moved card comes from the tableu, there might other cards above that need to be moved as well.
             //This doens't happen for moves where the selected card comes from foundation piles, stock pile or waste pile.
+            SerializedGameState snapshot = new SerializedGameState(this);
            
             if (selectedCard.zone == Zone.Tableu)
             {  
                 cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).Skip(1));
             }
-            Move move = new Move(cardsBeingMoved, from, dropPosition);
+            Move move = new Move(cardsBeingMoved, from, dropPosition, snapshot);
             //Notify subscribers
             foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
                 subscribedHandler.NotifyLegalMove(move);
@@ -329,7 +327,7 @@ public class GameManager : Singleton<GameManager>
             //     card.column = dropPosition.index;
             // }
             ExecuteMove(move);
-            movesHistory.Add(move);
+            movesHistory.Push(move);
         } else{
             IllegalMove move = new IllegalMove(selectedCard);
             //Notify subscribers
@@ -341,7 +339,12 @@ public class GameManager : Singleton<GameManager>
 
     }
     public void NotifyStockMove(){
+        
         if(stockPile.Count > 0){
+            List<Card> movedCards = new List<Card>();
+            movedCards.Add(stockPile.Peek());
+            Move move = new Move(movedCards, new TablePosition(Zone.Stock, -1), new TablePosition(Zone.Waste, -1), new SerializedGameState(this));
+
             foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
                 subscribedHandler.NotifyFlipStockCardMove(stockPile.Peek(), new List<Card>(wastePile));
             }
@@ -351,6 +354,8 @@ public class GameManager : Singleton<GameManager>
 
             // graphics.NotifyFlipStockCardMove(nextCard, wastePile.Count);
         } else{
+            Move move = new Move(this.wastePile.Reverse().ToList(), new TablePosition(Zone.Waste, -1), new TablePosition(Zone.Stock, -1), new SerializedGameState(this));
+
             foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
                 subscribedHandler.NotifyRestoreStockpileFromWastePile(new List<Card>(wastePile));
             }
@@ -385,6 +390,71 @@ public class GameManager : Singleton<GameManager>
         }
 
         this.RestartGame();
+    }
+
+    // public void UndoMove(){
+    //     if(movesHistory.Count == 0){
+    //         return;
+    //     }
+
+    //     Move moveToUndo = movesHistory.Pop();
+    //     Move undoMove = new Move(moveToUndo.movedCards, moveToUndo.to, moveToUndo.from);
+
+    //     foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
+    //         subscribedHandler.NotifyUndoMove(moveToUndo);
+    //     }
+    // }
+
+    // private void ExecuteUndoMove(Move move)
+    // {
+    //     Card selectedCard = move.movedCards.First();
+
+    //     if(move.from.zone == Zone.Tableu){
+    //         CardColumn startCardColum = this.tableu[selectedCard.column];
+       
+    //         //How am i supposed to know if I have to flip the card from the place where i started, or if I don't?
+    //         // if(  ){
+    //             Card faceUpCardToFlip = this.tableu[move.from.index].faceUpCards.First();
+    //             startCardColum.faceDownCards.Push(faceUpCardToFlip);
+    //         // }
+
+    //         startCardColum.faceUpCards.AddRange(move.movedCards);
+    //     }
+    //     //This one is straightforward enough
+    //     if(move.from.zone == Zone.Foundation){
+    //         //Update foundation pile - Remove moved card
+    //         foundationPiles[move.from.index].cards.Push(selectedCard);
+    //     }
+    //     if(move.from.zone == Zone.Waste){
+    //         //Update waste Pile (linked to stock pile)- Remove selected card
+    //         this.wastePile.Push(selectedCard);
+    //     }
+    //     //--------------------
+    //     if(move.to.zone == Zone.Tableu){
+    //         CardColumn targetCardColumn = this.tableu[move.to.index];
+
+    //         targetCardColumn.faceUpCards = targetCardColumn.faceUpCards.TakeUntil(c => c == selectedCard).ToList();
+
+    //     }
+    //     if(move.to.zone == Zone.Foundation){
+    //         //Update foundation pile - Add moved card
+    //         foundationPiles[move.to.index].cards.Pop();
+            
+    //     }
+            
+    //     //Update cards with new zone and column 
+    //     foreach (Card card in move.movedCards)
+    //     {
+    //         card.zone = move.to.zone;
+    //         card.column = move.to.index;
+    //     }
+    // }
+
+    public void UndoMove(Move move){
+        this.tableu = move.gameSnapshot.tableu;
+        this.stockPile = move.gameSnapshot.stockPile;
+        this.wastePile = move.gameSnapshot.wastePile;
+        this.foundationPiles = move.gameSnapshot.foundationPiles;
     }
 }
 
