@@ -72,7 +72,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         return suggestedCardSize;
     }
 
-    public Vector3[] ComputePortraitPositions(int noOfColumns, int x_padding, int y_padding){
+    public Vector3[] ComputeTableuPositions_Portrait(int noOfColumns, int x_padding, int y_padding, float topBarSize_y){
         Vector3[] tableuPortraitPositions = new Vector3[noOfColumns];
         Vector2 suggestedCardSize_sceenSpace = ComputeCardSize_ScreenSpace(noOfColumns, x_padding, y_padding);
         float cardWidth = suggestedCardSize_sceenSpace.x;
@@ -88,6 +88,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             Vector3 cardPosition_world = Camera.main.ScreenToWorldPoint(cardPosition_screen);
             cardPosition_world.z = 0;
             tableuPortraitPositions[i] = cardPosition_world;
+            tableuPortraitPositions[i].y = tableuPortraitPositions[i].y - topBarSize_y;
         }
         return tableuPortraitPositions;
     }
@@ -120,16 +121,15 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         Vector2 suggestedCardSize = ComputeCardSize_WorldSpace(columns_count, x_padding, y_padding);
         Sequence animSequence = DOTween.Sequence();
 
-        //Compute tableu positions
         var y_padding_worldSpace = ScreenSpace_To_WorldSpace(y_padding);
-
-        tableuPositions = ComputePortraitPositions(columns_count, x_padding, y_padding);
-
         //Compute TopBarOffset
         Vector3 topBarOffset = ComputeTopBarOffset();
 
+        //Compute tableu positions
+        tableuPositions = ComputeTableuPositions_Portrait(columns_count, x_padding, y_padding, topBarOffset.y);
+
         //Init stock pile object
-        InstantiateStockPile(stockPileCards, suggestedCardSize, y_padding_worldSpace, topBarOffset);
+        InstantiateStockPile(stockPileCards, suggestedCardSize, y_padding_worldSpace);
 
         //Place cards on tableu with animations
         float anim_delay = 0f;
@@ -137,7 +137,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         // Loop tableu columns 1 by 1
         for (int i = 0; i < tableu.Length; i++)
         {
-            var tableuColumn_pos = tableuPositions[i] - topBarOffset;
+            var tableuColumn_pos = tableuPositions[i];
 
             //Foundation Pile
             if (i < 4)
@@ -155,7 +155,9 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
                 GameObject faceDownCardGO = InstantiateFaceDownCard(suggestedCardSize, cardPile, faceDownCards_data, ii);
 
                 //Prepare Animation
-                tableuColumn_pos.y = tableuColumn_pos.y - faceDown_padding_y;
+                if(ii > 0){
+                    tableuColumn_pos.y = tableuColumn_pos.y - faceDown_padding_y;
+                }
                 //If a card is above another, the Z has to reflect that, or the colliders will overlap and steal each others' calls
                 tableuColumn_pos.z = faceDownCardGO.transform.position.z; 
 
@@ -169,7 +171,9 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             CardView cardView = cardGO.GetComponent<CardView>();
 
             //Prepare Animation
-            tableuColumn_pos.y = tableuColumn_pos.y - faceDown_padding_y;
+            if(i > 0){
+                tableuColumn_pos.y = tableuColumn_pos.y - faceDown_padding_y;
+            }
             //If a card is above another, the Z has to reflect that, or the colliders will overlap and steal each others' calls
             tableuColumn_pos.z = cardGO.transform.position.z; 
 
@@ -184,9 +188,9 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         }
     }
 
-    private void InstantiateStockPile(Stack<Card> stockPileCards, Vector2 suggestedCardSize, float y_padding_worldSpace, Vector3 topBarOffset)
+    private void InstantiateStockPile(Stack<Card> stockPileCards, Vector2 suggestedCardSize, float y_padding_worldSpace)
     {
-        this.stockPile_pos = tableuPositions.Last() - topBarOffset + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
+        this.stockPile_pos = tableuPositions.Last() + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
         
         Card[] stockPileCardsArr = stockPileCards.ToArray();
 
@@ -325,7 +329,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
     public bool IsPointAboveTableu(Vector2 point){
         Vector2 cardSize_worldSpace = this.ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
-        float aboveTableu_YCoord = this.tableuPositions[0].y - (cardSize_worldSpace.y);
+        float aboveTableu_YCoord = this.tableuPositions[0].y;// - (cardSize_worldSpace.y);
 
         return point.y > aboveTableu_YCoord;
     }
@@ -412,11 +416,15 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         // }
 
         if(move.from.zone == Zone.Tableu){
-        //Update the card below the one moved: flip.
-            if(GameManager.Instance.tableu[move.from.index].faceDownCards.Count > 0){
-                Card cardToFlip = GameManager.Instance.tableu[move.from.index].faceDownCards.Peek();
-                this.cardData_to_cardView[cardToFlip].TurnFaceUp(flipSpeed);
+            //Update the card below the one moved: flip.
+            if(selectedCardView.CardBelow != null && selectedCardView.CardBelow.isFaceUp == false){
+                if(GameManager.Instance.tableu[move.from.index].faceDownCards.Count > 0){
+                    Card cardToFlip = GameManager.Instance.tableu[move.from.index].faceDownCards.Peek();
+                    this.cardData_to_cardView[cardToFlip].TurnFaceUp(flipSpeed);
+                }
+
             }
+
             // if(move.movedCards.First().CardBelow != null){
             //     this.cardData_to_cardView[move.movedCards.First().CardBelow].TurnFaceUp(flipSpeed);
             // }

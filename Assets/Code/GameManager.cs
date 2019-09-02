@@ -567,7 +567,7 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
-    int serializedGameToLoad_index = 0;
+    public int serializedGameToLoad_index = 1;
     [ContextMenu("Load Game")]
     private void LoadSerializedGame(){
         using (FileStream fs = File.Open(dirPathToSerialize+"data"+serializedGameToLoad_index+".dat", FileMode.Open))
