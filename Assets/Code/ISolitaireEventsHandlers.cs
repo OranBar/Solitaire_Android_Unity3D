@@ -8,6 +8,6 @@ public interface ISolitaireEventsHandlers
     void NotifyLegalMove(Move move);
     void NotifyIllegalMove(IllegalMove move);
     void NotifyRestoreStockpileFromWastePile(List<Card> restoredStockPile);
-    void NotifyFlipStockCardMove(Card nextCard, List<Card> cardsInWastePile);
+    void NotifyFlipStockCardMove(Move move);
     void NotifyUndoMove(Move moveToUndo);
 }

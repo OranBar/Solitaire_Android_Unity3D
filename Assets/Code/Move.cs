@@ -25,30 +25,19 @@ public class Move
         }
     }   
 
-    // public Card GetCardToFlip(){
-    //     if(this.from.zone == Zone.Tableu){
-    //         //Update start tableu pile - unreference moved cards
-    //         CardColumn startCardColum = GameManager.Instance.tableu[SelectedCard.column];
-    //         // startCardColum.faceUpCards = startCardColum.faceUpCards.TakeUntil(c => c == SelectedCard).ToList();
-       
-    //         //Flip card below if needed
-    //         if(startCardColum.faceUpCards.Count == 0 && startCardColum.faceDownCards.Count > 0){
-    //             Card faceDownCardToFlip = GameManager.Instance.tableu[SelectedCard.column].faceDownCards.Peek();
-    //             return faceDownCardToFlip;
-    //         }
-    //     } 
-    //     return null;
-    // }
-
-    // public bool MoveResultsInCardFlipped(){
-    //     if(this.from.zone == Zone.Tableu){
-    //         //Update start tableu pile - unreference moved cards
-    //         CardColumn startCardColum = GameManager.Instance.tableu[SelectedCard.column];
-    //         // startCardColum.faceUpCards = startCardColum.faceUpCards.TakeUntil(c => c == SelectedCard).ToList();
-       
-    //         //Flip card below if needed
-    //         return (startCardColum.faceUpCards.Count == 0 && startCardColum.faceDownCards.Count > 0);
-    //     } 
-    //     return false;
-    // }
+    //If null, no card needs to be flipped
+    public Card GetCardToFlip(){
+        if(this.from.zone == Zone.Tableu){
+            //Update start tableu pile - unreference moved cards
+            CardColumn startCardColum = gameSnapshot.tableu[SelectedCard.column];
+            
+            //Flip card below if needed
+            List<Card> faceUpCards_afterMove = startCardColum.faceDownCards.SkipWhile(c => c != SelectedCard).Skip(1).ToList();
+            if(faceUpCards_afterMove.Count == 0 && startCardColum.faceDownCards.Count > 0){
+                Card faceDownCardToFlip = gameSnapshot.tableu[SelectedCard.column].faceDownCards.Peek();
+                return faceDownCardToFlip;
+            }
+        } 
+        return null;
+    }
 }

@@ -414,18 +414,11 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
         CardView destinationCardView = null;
 
-        // if(move.MoveResultsInCardFlipped()){
-        //     Card cardToFlip = move.GetCardToFlip();
-        //     this.cardData_to_cardView[cardToFlip].TurnFaceUp(flipSpeed);
-        // }
-
         if(move.from.zone == Zone.Tableu){
             //Flip Card
-            if(selectedCardView.CardBelow != null && selectedCardView.CardBelow.isFaceUp == false){
-                if(move.gameSnapshot.tableu[move.from.index].faceDownCards.Count > 0){
-                    Card cardToFlip = GameManager.Instance.tableu[move.from.index].faceDownCards.Peek();
-                    this.cardData_to_cardView[cardToFlip.ToString()].TurnFaceUp(flipSpeed);
-                }
+            Card cardToFlip = move.GetCardToFlip();
+            if(cardToFlip != null){
+                this.cardData_to_cardView[cardToFlip.ToString()].TurnFaceUp(flipSpeed);
             }
         }
 
@@ -434,7 +427,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
             //Move top two cards left, so we can show a third again.
             if(move.gameSnapshot.wastePile.Count > 3){
-                Card topCard_wastePile = GameManager.Instance.wastePile.Peek();
+                Card topCard_wastePile = move.gameSnapshot.wastePile.Peek();
                 CardView topCardView_wastePile = this.cardData_to_cardView[topCard_wastePile.ToString()];
                 
                 CardView[] cardsToScoopRight = new CardView[2];
@@ -450,7 +443,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
         if(move.to.zone == Zone.Tableu){
             //Move selected cards to new column
-            bool isTargetColumnEmpty = GameManager.Instance.tableu[targetColumn].faceUpCards.IsNullOrEmpty();
+            bool isTargetColumnEmpty = move.gameSnapshot.tableu[targetColumn].faceUpCards.IsNullOrEmpty();
             if(isTargetColumnEmpty == false){
                 CardColumn targetCardColumn = move.gameSnapshot.tableu[targetColumn];
                 Card destinationCard = targetCardColumn.faceUpCards.Last();
@@ -490,8 +483,8 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         this.cardData_to_cardView[move.card.ToString()].UndoDrag();
     }
 
-    public void NotifyFlipStockCardMove(Card revealedStockCard, List<Card> wastePile){
-        int wastePileCount = wastePile.Count;
+    public void NotifyFlipStockCardMove(Move move){
+        int wastePileCount = move.gameSnapshot.wastePile.Count;
 
         // if(wastePileCount > 0){
         //     //Disable interactions with the card that was at the top of the waste pile, before this move, which made it second to top.
@@ -499,7 +492,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         // }
 
         //Get the card on top of the stock. Move and flip it.
-        CardView revealedStockCardView = this.cardData_to_cardView[revealedStockCard.ToString()];
+        CardView revealedStockCardView = this.cardData_to_cardView[move.SelectedCard.ToString()];
         // revealedStockCardView.enabled = true;
         Vector3 cardSize = ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
         revealedStockCardView.SetSortingOrderAndZDepth(wastePileCount-1, false);
@@ -516,7 +509,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
         //Scoop left the upmost two cards in the pile, if we are now exceeding 3 cards
         if(wastePileCount >= 3){
-            ScoopCardsLeft(wastePile.Take(3).ToList());
+            ScoopCardsLeft(move.gameSnapshot.wastePile.Take(3).ToList());
         }
     }
 
