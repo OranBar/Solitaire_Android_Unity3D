@@ -1,4 +1,7 @@
-﻿using System;
+﻿using System;  
+using System.IO;  
+using System.Runtime.Serialization;  
+using System.Runtime.Serialization.Formatters.Binary;  
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -550,7 +553,30 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
+    public string dirPathToSerialize;
 
 
+    [ContextMenu("Serialize Current Game")]
+    private void SerializeCurrentGame(){
+        string[] filePaths = Directory.GetFiles(dirPathToSerialize, "*.dat");
+
+        using (FileStream fs = File.Create(dirPathToSerialize+"data"+(filePaths.Length+1)+".dat"))
+        {
+            BinaryFormatter b = new BinaryFormatter();  
+            b.Serialize(fs, this.shufflerClone);  
+        }
+    }
+
+    int serializedGameToLoad_index = 0;
+    [ContextMenu("Load Game")]
+    private void LoadSerializedGame(){
+        using (FileStream fs = File.Open(dirPathToSerialize+"data"+serializedGameToLoad_index+".dat", FileMode.Open))
+        {
+            BinaryFormatter b = new BinaryFormatter();  
+            this.shufflerClone = b.Deserialize(fs) as DeckShuffler;  
+        }
+
+        this.RestartGame();
+    }
 }
 

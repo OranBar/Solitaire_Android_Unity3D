@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using Random = System.Random;
 
+[Serializable]
 public class DeckShuffler : ICloneable
 {
     

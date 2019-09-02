@@ -3,7 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Card: ICloneable 
+[Serializable]
+public class Card: ICloneable
 {
     public readonly int value;
     public readonly Suit suit;
