@@ -173,6 +173,12 @@ public class GameManager : Singleton<GameManager>
             //Update start tableu pile - unreference moved cards
             CardColumn startCardColum = this.tableu[selectedCard.column];
             startCardColum.faceUpCards = startCardColum.faceUpCards.TakeUntil(c => c == selectedCard).ToList();
+       
+            //Flip card below if needed
+            if(startCardColum.faceUpCards.Count == 0 && startCardColum.faceDownCards.Count > 0){
+                Card faceDownCardToFlip = this.tableu[selectedCard.column].faceDownCards.Pop();
+                startCardColum.faceUpCards.Add(faceDownCardToFlip);
+            }
         }
         if(move.from.zone == Zone.Foundation){
             //Update foundation pile - Remove moved card
@@ -249,7 +255,7 @@ public class GameManager : Singleton<GameManager>
             
             if(faceUpCards.Contains(card)){
                 int index = faceUpCards.IndexOf(card);
-                if(index-1 > 0){
+                if(index-1 >= 0){
                     return faceUpCards[index-1];
                 }else{
                     if(faceDownCards.Count > 0){
@@ -260,7 +266,7 @@ public class GameManager : Singleton<GameManager>
 
             if(faceDownCards.Contains(card)){
                 int index = faceDownCards.IndexOf(card);
-                if(index-1 > 0){
+                if(index-1 >= 0){
                     return faceDownCards[index-1];
                 }else{
                     return null;
@@ -271,7 +277,7 @@ public class GameManager : Singleton<GameManager>
             var wastePileCards = this.wastePile.Reverse().ToList();
             if(wastePileCards.Contains(card)){
                 int index = wastePileCards.IndexOf(card);
-                if(index-1 > 0){
+                if(index-1 >= 0){
                     return wastePileCards[index-1];
                 }else{
                     return null;
@@ -380,15 +386,7 @@ public class GameManager : Singleton<GameManager>
             //Store move in history
             Debug.Log("Legal move");
             //Update Game data
-            if (selectedCard.zone == Zone.Tableu)
-            {  //NOW
-                // cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).Skip(1));
-                this.tableu[selectedCard.column].faceUpCards = this.tableu[selectedCard.column].faceUpCards.TakeUntil(c => c == selectedCard).ToList();
-                if(this.tableu[selectedCard.column].faceDownCards.Count > 0){
-                    Card faceDownCardToFlip = this.tableu[selectedCard.column].faceDownCards.Pop();
-                    this.tableu[selectedCard.column].faceUpCards.Add(faceDownCardToFlip);
-                }
-            }
+            
             // CardColumn startCardColum = this.tableu[selectedCard.column];
             // startCardColum.faceUpCards = startCardColum.faceUpCards.TakeUntil(c => c == selectedCard).ToList();
             // targetCardColumn.faceUpCards.AddRange(move.movedCards);

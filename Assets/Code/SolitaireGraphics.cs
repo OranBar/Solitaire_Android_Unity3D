@@ -116,7 +116,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         int columns_count = tableu.Length;
         
         //Create cards container empty gameobject - Stored as class variable for easy access in insantiation methods
-        cardsContainer = new GameObject("Cards Container").transform;
+        this.cardsContainer = new GameObject("Cards Container").transform;
         
         Vector2 suggestedCardSize = ComputeCardSize_WorldSpace(columns_count, x_padding, y_padding);
         Sequence animSequence = DOTween.Sequence();
@@ -126,7 +126,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         Vector3 topBarOffset = ComputeTopBarOffset();
 
         //Compute tableu positions
-        tableuPositions = ComputeTableuPositions_Portrait(columns_count, x_padding, y_padding, topBarOffset.y);
+        this.tableuPositions = ComputeTableuPositions_Portrait(columns_count, x_padding, y_padding, topBarOffset.y);
 
         //Init stock pile object
         InstantiateStockPile(stockPileCards, suggestedCardSize, y_padding_worldSpace);
@@ -472,7 +472,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
                 
                 targetPos = destinationCardView.transform.position - new Vector3(0,faceUp_padding_y,0);
 
-                selectedCardView.SetSortingOrderAndZDepth((int)(-destinationCardView.transform.position.z));
+                selectedCardView.SetSortingOrderAndZDepth(targetCardColumn.TotalCardsCount());
                 targetPos.z = selectedCardView.transform.position.z; //Update Z depth
 
             }else{

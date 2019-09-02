@@ -13,6 +13,9 @@ public class CardColumn
         return faceUpCards.Last();
     }
 
+    public int TotalCardsCount(){
+        return faceDownCards.Count + faceUpCards.Count;
+    }
     
     public List<Card> SelectCard(int faceUpCards_Index){
         Debug.Assert(faceUpCards_Index < faceUpCards.Count);
