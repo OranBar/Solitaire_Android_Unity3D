@@ -233,8 +233,11 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
     {
         Vector3 targetPos = tableuColumn_pos + new Vector3(0, y_padding_worldSpace + suggestedCardSize.y, 0);
         GameObject foundationPileGO = this.InstantiateAndScale(foundationPilePrefab, suggestedCardSize, targetPos);
+        CardView cardView = foundationPileGO.GetComponent<CardView>();
+        
         foundationPileGO.transform.parent = cardsContainer;
-        foundationPileGO.GetComponent<CardView>().bigSuit.sprite = SpritesProvider.LoadSuitSprite(suit);
+        cardView.bigSuit.sprite = SpritesProvider.LoadSuitSprite(suit);
+        cardView.SetSortingOrderAndZDepth(-1);
         foundationPileGO.name = "Foundation_" + suit.ToString();
 
         return foundationPileGO;
@@ -484,6 +487,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
             targetPos = this.foundationPilesPositions[targetColumn];
             int cardsBelowSelection = GameManager.Instance.foundationPiles[targetColumn].cards.Count;
             selectedCardView.SetSortingOrderAndZDepth(cardsBelowSelection);
+            targetPos.z = selectedCardView.transform.position.z;
         }else{
             throw new Exception("Move is invalid");
         }
