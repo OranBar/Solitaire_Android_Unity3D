@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine.UI;
 using DG.Tweening;
 
-public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphics
+public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsHandlers
 {
 //---------------------------
     public GameObject cardPrefab, foundationPilePrefab;
@@ -43,6 +43,10 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
 
     protected override void InitTon(){ }
 
+    void Awake()
+    {
+        GameManager.Instance.RegisterSolitaireEventsHandler(this);
+    }
 
     private Vector3 stockPile_pos;
 
@@ -105,7 +109,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         return newGO;
     }
 
-    public void SetupGraphics(CardColumn[] tableu, Stack<Card> stockPileCards)
+    public void NotifyBeginGame(CardColumn[] tableu, Stack<Card> stockPileCards)
     {
         this.foundationPilesPositions = new Vector3[4];
         this.cardData_to_cardView = new Dictionary<Card, CardView>();
@@ -417,6 +421,11 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireGraphic
         //     }
         //     // selectedCardView.cardBelow.cardAbove = null;
         // }
+
+        if(move.MoveResultsInCardFlipped()){
+            Card cardToFlip = move.GetCardToFlip();
+            this.cardData_to_cardView[cardToFlip].TurnFaceUp(flipSpeed);
+        }
 
         if(move.from.zone == Zone.Tableu){
             //Update the card below the one moved: flip.

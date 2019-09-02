@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface ISolitaireGraphics 
+public interface ISolitaireEventsHandlers 
 {
-    void SetupGraphics(CardColumn[] tableu, Stack<Card> stockPile);
+    void NotifyBeginGame(CardColumn[] tableu, Stack<Card> stockPile);
     void NotifyLegalMove(Move move);
     void NotifyIllegalMove(IllegalMove move);
     void NotifyRestoreStockpileFromWastePile(List<Card> restoredStockPile);

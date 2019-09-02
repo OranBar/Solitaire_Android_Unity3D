@@ -153,7 +153,7 @@ public class CardView : MonoBehaviour
         }
     }
 
-    private IEnumerator MoveToPoint_Delayed_Coro(Vector2 targetPosition, float speed, float startDelay){
+    private IEnumerator MoveToPoint_Delayed_Coro(Vector3 targetPosition, float speed, float startDelay){
         yield return new WaitForSeconds(startDelay);
         CardAbove.MoveToPoint(targetPosition);
     }
@@ -162,10 +162,8 @@ public class CardView : MonoBehaviour
         // int delta = (cardsBelow+1) + (int) this.transform.position.z;
         SetSortingOrder(cardsBelow);
         
-        var tmpPosition = this.transform.position;
-        tmpPosition.z = -(cardsBelow+1);
-        this.transform.position = tmpPosition;
-
+        this.transform.SetZ(-(cardsBelow+1));
+        
         if(executeRecursively && CardAbove != null){
             CardAbove.SetSortingOrderAndZDepth(cardsBelow+1);
         }

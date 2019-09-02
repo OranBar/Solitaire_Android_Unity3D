@@ -10,7 +10,7 @@ using System.Linq;
 public class GameManager : Singleton<GameManager>
 {
 //---------------------------
-    public ISolitaireGraphics graphics;
+    public List<ISolitaireEventsHandlers> subscribedInstances = new List<ISolitaireEventsHandlers>();
     public int columns_count = 7;
 //---------------------------
 
@@ -26,11 +26,11 @@ public class GameManager : Singleton<GameManager>
     public List<Move> movesHistory = new List<Move>();
 
     protected override void InitTon(){ 
-        graphics = this.GetComponent<ISolitaireGraphics>();
 
-        
+    }
 
-        Debug.Assert(graphics != null, "Couldn't find class implementing the ISolitaireGraphics on GameObject with GameManager component ("+this.gameObject.name+"", this.gameObject);
+    public void RegisterSolitaireEventsHandler(ISolitaireEventsHandlers eventHandler){
+        subscribedInstances.Add(eventHandler);
     }
 
     // Start is called before the first frame update
@@ -71,7 +71,9 @@ public class GameManager : Singleton<GameManager>
         shufflerClone = seed.Clone() as DeckShuffler;
 
         SetUpTable(columns_count, seed);
-        graphics.SetupGraphics(tableu, stockPile);        
+        foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
+            subscribedHandler.NotifyBeginGame(tableu, stockPile);
+        }
     }
 
     public void RestartGame(){
@@ -152,19 +154,6 @@ public class GameManager : Singleton<GameManager>
         return false;
     }
 
-    // public void NotifyCardDropped_FoundationPile(Card cardData, Suit suit)
-    // {
-    //     Stack<Card> foundationPile = this.foundationPiles[suit];
-    //     if(IsLegal_FoundationPileMove(cardData, foundationPile)){
-    //         //TODO: Legal foundation pile move
-    //         //Create Move
-            
-    //     } else{
-    //         IllegalMove move = new IllegalMove(cardData);
-    //         graphics.NotifyIllegalMove(move);
-    //         Debug.Log("Illegal move");
-    //     }
-    // }
     private void ExecuteMove(Move move)
     {
         Card selectedCard = move.movedCards.First();
@@ -288,63 +277,7 @@ public class GameManager : Singleton<GameManager>
         return null;
     }
 
-
-    // public void NotifyCardDropped(Card selectedCard, TablePosition dropPosition){
-    //     TablePosition from = new TablePosition(selectedCard.zone, selectedCard.column);
-        
-    //     List<Card> cardsBeingMoved = new List<Card>();
-    //     cardsBeingMoved.Add(selectedCard);
-    //     //If the moved card comes from the tableu, there might other cards above that need to be moved as well.
-    //     //This doens't happen for moves where the selected card comes from foundation piles, stock pile or waste pile.
-    //     if (selectedCard.zone == Zone.Tableu)
-    //     {  //NOW
-    //         cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard));
-    //     }
-
-
-
-
-
-
-
-
-
-
-    //     Move move = new Move(cardsBeingMoved, from, dropPosition);
-    //     graphics.NotifyLegalMove(move);
-    //     movesHistory.Add(move);
-    // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public void NotifyCardDropped(Card selectedCard, TablePosition dropPosition){
-        
-        // if(dropPosition.zone == Zone.NotAZone){
-        //     //Card was dropped on the upper part of the table, between foundation piles and deckPile, or on the same column as it started
-        //     IllegalMove move = new IllegalMove(selectedCard);
-        //     graphics.NotifyIllegalMove(move);
-        //     Debug.Log("Illegal move");
-        // } 
-        // else if(dropPosition.zone == Zone.Tableu){
-        //     ProcessCardDroppedOnTableu(selectedCard, dropPosition);
-        // }else if(dropPosition.zone == Zone.Foundation)
-        // {
-        //     ProcessCardDroppedOnFoundation(selectedCard, dropPosition);
-        // }
-
         bool isValidMove = false;
         TablePosition from = new TablePosition(selectedCard.zone, selectedCard.column);
 
@@ -381,8 +314,10 @@ public class GameManager : Singleton<GameManager>
                 cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).Skip(1));
             }
             Move move = new Move(cardsBeingMoved, from, dropPosition);
-            //Graphics react to move
-            graphics.NotifyLegalMove(move);
+            //Notify subscribers
+            foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
+                subscribedHandler.NotifyLegalMove(move);
+            }
             //Store move in history
             Debug.Log("Legal move");
             //Update Game data
@@ -397,153 +332,28 @@ public class GameManager : Singleton<GameManager>
             movesHistory.Add(move);
         } else{
             IllegalMove move = new IllegalMove(selectedCard);
-            graphics.NotifyIllegalMove(move);
+            //Notify subscribers
+            foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
+                subscribedHandler.NotifyIllegalMove(move);
+            }
             Debug.Log("Illegal move");
         }
 
     }
-
-
-    // public void ProcessCardDroppedOnTableu(Card selectedCard, TablePosition dropPosition){
-    //     //Card was dropped on one of the tableu's columns
-    //     TablePosition from = new TablePosition(selectedCard.zone, selectedCard.column);
-
-    //     int targetColumn = dropPosition.index;
-    //     CardColumn targetCardColumn = this.tableu[targetColumn];
-    //     Card cardToDropOn = targetCardColumn.faceUpCards.LastOrDefault();    //TODO: thorws sequence empry exception
-    //     if(IsLegal_TableuMove(selectedCard, cardToDropOn))
-    //     {
-    //         //Create move. 
-    //         List<Card> cardsBeingMoved = new List<Card>();
-    //         cardsBeingMoved.Add(selectedCard);
-    //         //If the moved card comes from the tableu, there might other cards above that need to be moved as well.
-    //         //This doens't happen for moves where the selected card comes from foundation piles, stock pile or waste pile.
-    //         if (selectedCard.zone == Zone.Tableu)
-    //         {  //NOW
-    //             cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard));
-    //         }
-
-    //         // Card targetCard = this.tableu[targetColumn].faceUpCards.Last();
-    //         // Move move = new Move(cardsBeingMoved, targetCard);
-    //         // Move move = new Move(cardsBeingMoved, selectedCard.zone, selectedCard.column, Zone.Tableu, targetColumn);
-    //         Move move = new Move(cardsBeingMoved, from, dropPosition);
-    //         //Graphics react to move
-    //         graphics.NotifyLegalMove(move);
-    //         //Store move in history
-    //         movesHistory.Add(move);
-    //         Debug.Log("Legal move");
-    //         //Update Game data
-    //         // CardColumn startCardColum = this.tableu[selectedCard.column];
-    //         // startCardColum.faceUpCards = startCardColum.faceUpCards.TakeUntil(c => c == selectedCard).ToList();
-    //         // targetCardColumn.faceUpCards.AddRange(move.movedCards);
-    //         // foreach(Card card in move.movedCards){
-    //         //     card.column = dropPosition.index;
-    //         // }
-    //         ExecuteMove(selectedCard, dropPosition, move);
-
-    //     }
-    //     else
-    //     {
-    //         //Put card back where it began
-    //         IllegalMove move = new IllegalMove(selectedCard);
-    //         graphics.NotifyIllegalMove(move);
-    //         Debug.Log("Illegal move");
-    //     }
-    // }
-
-
-    // private void ProcessCardDroppedOnFoundation(Card selectedCard, TablePosition dropPosition)
-    // {
-    //     if (IsLegal_FoundationMove(selectedCard, this.foundationPiles[dropPosition.index]))
-    //     {
-    //         // CardColumn fromCardColumn = this.tableu[targetColumn];
-
-
-    //         //Create move. 
-    //         List<Card> cardsBeingMoved = new List<Card>();
-    //         cardsBeingMoved.Add(selectedCard);
-    //         //If the moved card comes from the tableu, there might other cards above that need to be moved as well.
-    //         //This doens't happen for moves where the selected card comes from foundation piles, stock pile or waste pile.
-    //         if (selectedCard.zone == Zone.Tableu)
-    //         {
-    //             cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard));
-    //         }
-
-    //         // Card targetCard = this.tableu[targetColumn].faceUpCards.Last();
-    //         // Move move = new Move(cardsBeingMoved, targetCard);
-    //         // Move move = new Move(cardsBeingMoved, selectedCard.zone, selectedCard.column, Zone.Tableu, targetColumn);
-    //         TablePosition from = new TablePosition(selectedCard.zone, selectedCard.column);
-    //         Move move = new Move(cardsBeingMoved, from, dropPosition);
-    //         //Graphics react to move
-    //         graphics.NotifyLegalMove(move);
-    //         //Store move in history
-    //         movesHistory.Add(move);
-    //         Debug.Log("Legal move");
-    //         //Update Game data
-
-
-    //         //NOW
-    //     }
-    // }
-
-    // public void NotifyCardDropped_Tableu(Card selectedCard, int targetColumn){
-    //     if(targetColumn == SolitaireGraphics.INVALID_COLUMN || targetColumn == selectedCard.column){
-    //         //Card was dropped on the upper part of the table, between foundation piles and deckPile, or on the same column as it started
-    //         IllegalMove move = new IllegalMove(selectedCard);
-    //         graphics.NotifyIllegalMove(move);
-    //         Debug.Log("Illegal move");
-    //     } else {
-    //         //Card was dropped on one of the tableu's columns
-    //         CardColumn targetCardColumn = this.tableu[targetColumn];
-    //         Card cardToDropOn = targetCardColumn.faceUpCards.Last();    //TODO: thorws sequence empry exception
-    //         if(IsLegal_TableuMove(selectedCard, cardToDropOn)){
-    //             //Create move. 
-    //             List<Card> cardsBeingMoved = new List<Card>();
-    //             cardsBeingMoved.Add(selectedCard);
-    //             //If the moved card comes from the tableu, there might other cards above that need to be moved aswell.
-    //             //This doens't happen for moves where the selected card comes from foundation piles, stock pile or waste pile.
-    //             if(selectedCard.column >= 0 ){
-    //                 cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard));
-    //             }
-
-    //             Card targetCard = this.tableu[targetColumn].faceUpCards.Last();
-    //             // Move move = new Move(cardsBeingMoved, targetCard);
-    //             Move2 move = new Move2(cardsBeingMoved, selectedCard.zone, selectedCard.column, Zone.Tableu, targetColumn);
-    //             //Graphics react to move
-    //             graphics.NotifyLegalMove(move);
-    //             //Store move in history
-    //             movesHistory.Add(move);
-    //             Debug.Log("Legal move");
-    //             //Update Game data
-    //             CardColumn startCardColum = this.tableu[selectedCard.column];
-    //             startCardColum.faceUpCards = startCardColum.faceUpCards.TakeUntil(c => c == selectedCard).ToList();
-    //             targetCardColumn.faceUpCards.AddRange(move.movedCards);
-    //             foreach(Card card in move.movedCards){
-    //                 card.column = targetCard.column;
-    //             }
-
-    //         }else{
-    //             //Put card back where it began
-    //             IllegalMove move = new IllegalMove(selectedCard);
-    //             graphics.NotifyIllegalMove(move);
-    //             Debug.Log("Illegal move");
-    //         }
-    //     }
-    // }
-
-    //NOW Update reference to cards moved away from stock (here? maybe not)
     public void NotifyStockMove(){
         if(stockPile.Count > 0){
-            graphics.NotifyFlipStockCardMove(stockPile.Peek(), new List<Card>(wastePile));
-
+            foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
+                subscribedHandler.NotifyFlipStockCardMove(stockPile.Peek(), new List<Card>(wastePile));
+            }
             //Update Game Data
             Card nextCard = stockPile.Pop();
             wastePile.Push(nextCard);
 
             // graphics.NotifyFlipStockCardMove(nextCard, wastePile.Count);
         } else{
-            graphics.NotifyRestoreStockpileFromWastePile(new List<Card>(wastePile));
-
+            foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
+                subscribedHandler.NotifyRestoreStockpileFromWastePile(new List<Card>(wastePile));
+            }
             while(wastePile.Count > 0){
                 Card card = wastePile.Pop();
                 stockPile.Push(card);
