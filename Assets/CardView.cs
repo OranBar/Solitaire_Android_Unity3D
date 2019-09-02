@@ -149,13 +149,13 @@ public class CardView : MonoBehaviour
         if(this.cardData.zone == Zone.Tableu && CardAbove != null && CardAbove.isFaceUp){
             targetPosition.z = CardAbove.transform.position.z;
             // CardAbove.MoveTowardsPoint_Recursive(targetPosition - offsetToCardAbove, speed * 1.5f);
-            StartCoroutine(MoveToPoint_Delayed_Coro(targetPosition - offsetToCardAbove, speed, 0.01f));
+            StartCoroutine(MoveToPoint_Delayed_Coro(CardAbove, targetPosition - offsetToCardAbove, speed, 0.01f));
         }
     }
 
-    private IEnumerator MoveToPoint_Delayed_Coro(Vector3 targetPosition, float speed, float startDelay){
+    private IEnumerator MoveToPoint_Delayed_Coro(CardView targetCard, Vector3 targetPosition, float speed, float startDelay){
         yield return new WaitForSeconds(startDelay);
-        CardAbove.MoveToPoint(targetPosition);
+        targetCard.MoveToPoint(targetPosition);
     }
 
     public void SetSortingOrderAndZDepth(int cardsBelow, bool executeRecursively=true){

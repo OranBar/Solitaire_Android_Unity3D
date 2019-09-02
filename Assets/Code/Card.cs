@@ -22,6 +22,7 @@ public class Card: ICloneable, IEquatable<Card>
     public object Clone(){
         Card result = new Card(value, suit);
         result.zone = this.zone;
+        result.column = this.column;
         return result;
     }
 

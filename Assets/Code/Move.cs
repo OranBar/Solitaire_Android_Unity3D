@@ -13,7 +13,7 @@ public class Move
 
     public Move(List<Card> movedCards, TablePosition from, TablePosition to, SerializedGameState gameSnapshot)
     {
-        this.movedCards = movedCards;
+        this.movedCards = movedCards.Select(c => c.Clone()).Cast<Card>().ToList();
         this.from = from;
         this.to = to;
         this.gameSnapshot = gameSnapshot;

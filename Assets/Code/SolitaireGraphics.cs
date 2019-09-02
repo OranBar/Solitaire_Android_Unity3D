@@ -462,6 +462,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
                 targetPos = destinationCardView.transform.position - new Vector3(0,faceUp_padding_y,0);
 
+
                 selectedCardView.SetSortingOrderAndZDepth(targetCardColumn.TotalCardsCount());
                 targetPos.z = selectedCardView.transform.position.z; //Update Z depth
 
@@ -481,8 +482,14 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
             //Move selected card to foundation
             targetPos = this.foundationPilesPositions[targetColumn];
             int cardsBelowSelection = move.gameSnapshot.foundationPiles[targetColumn].cards.Count;
+
+            int currZDepth = Mathf.RoundToInt(selectedCardView.transform.position.z * -1);
+
             selectedCardView.SetSortingOrderAndZDepth(cardsBelowSelection);
             targetPos.z = selectedCardView.transform.position.z;
+
+            undoSequence.AppendCallback(()=>selectedCardView.SetSortingOrderAndZDepth(currZDepth));
+
         }else{
             throw new Exception("Move is invalid");
         }
