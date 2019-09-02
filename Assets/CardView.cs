@@ -68,6 +68,12 @@ public class CardView : MonoBehaviour
         if(PauseMenu.Instance.isPaused){return;}
 
         if(isFaceUp){
+            if(this.cardData.zone == Zone.Waste){
+                if(this.CardAbove != null && this.CardAbove.isFaceUp){
+                    return; //You can't take cards from the pile if they are not at the top.
+                }
+            }
+            
             ChangeSortingLayer_Recursive("Selectedcards");
             isBeingDragged = true;
             positionBeforeDrag = this.transform.position;
