@@ -4,9 +4,16 @@ using UnityEngine;
 
 public class StockClickDetector : MonoBehaviour
 {
+
+    public float cooldown;
+    public float lastClickTime = 0;
+
     void OnMouseUp()
     {
-        GameManager.Instance.NotifyStockMove();
+        if(Time.time - lastClickTime > cooldown){
+            lastClickTime = Time.time;
+            GameManager.Instance.NotifyStockMove();
+        }
     }
         
 }

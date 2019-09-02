@@ -217,7 +217,8 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         //Initialize Object to decect stock touches
         GameObject stockPileClickDetectorGO = new GameObject("stockPileClickDetectorGO");
         stockPileClickDetectorGO.transform.parent = cardsContainer;
-        stockPileClickDetectorGO.AddComponent<StockClickDetector>();
+        var stockClickDetector = stockPileClickDetectorGO.AddComponent<StockClickDetector>();
+        stockClickDetector.cooldown = flipSpeed;
         stockPileClickDetectorGO.AddComponentCopy(previousCardView.GetComponent<BoxCollider2D>());
         stockPileClickDetectorGO.transform.localScale = previousCardView.transform.localScale;
         stockPileClickDetectorGO.transform.position = previousCardView.transform.position;
