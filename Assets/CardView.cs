@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class CardView : MonoBehaviour
 {
-    public int moveSpeed = 2;
+    public float moveSpeed = 2.5f;
 
     public SpriteRenderer mainSpriteRenderer;
 
@@ -125,6 +125,7 @@ public class CardView : MonoBehaviour
         if(targetMovePosition.HasValue){
             if(Vector3.Distance(this.transform.position, targetMovePosition.Value) > 0.0001f){
                 MoveTowardsPoint_Recursive(targetMovePosition.Value, moveSpeed);
+                transform.position = Vector3.SmoothDamp(transform.position, targetMovePosition.Value, ref currentVelocity, moveSpeed * Time.deltaTime);
             } else {
                 targetMovePosition = null;
             }
@@ -142,13 +143,19 @@ public class CardView : MonoBehaviour
     }
 
     private void MoveTowardsPoint_Recursive(Vector3 targetPosition, float speed){
-        transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref currentVelocity, speed * Time.deltaTime);
-        
+        // transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref currentVelocity, speed * Time.deltaTime);
+        MoveToPoint(targetPosition);
         
         if(this.cardData.zone == Zone.Tableu && CardAbove != null && CardAbove.isFaceUp){
             targetPosition.z = CardAbove.transform.position.z;
-            CardAbove.MoveTowardsPoint_Recursive(targetPosition - offsetToCardAbove, speed * 1.5f);
+            // CardAbove.MoveTowardsPoint_Recursive(targetPosition - offsetToCardAbove, speed * 1.5f);
+            StartCoroutine(MoveToPoint_Delayed_Coro(targetPosition - offsetToCardAbove, speed, 0.01f));
         }
+    }
+
+    private IEnumerator MoveToPoint_Delayed_Coro(Vector2 targetPosition, float speed, float startDelay){
+        yield return new WaitForSeconds(startDelay);
+        CardAbove.MoveToPoint(targetPosition);
     }
 
     public void SetSortingOrderAndZDepth(int cardsBelow, bool executeRecursively=true){
