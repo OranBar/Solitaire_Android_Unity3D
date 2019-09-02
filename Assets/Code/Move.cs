@@ -32,7 +32,7 @@ public class Move
             CardColumn startCardColum = gameSnapshot.tableu[SelectedCard.column];
             
             //Flip card below if needed
-            List<Card> faceUpCards_afterMove = startCardColum.faceDownCards.SkipWhile(c => c != SelectedCard).Skip(1).ToList();
+            List<Card> faceUpCards_afterMove = startCardColum.faceUpCards.TakeUntil(c => c == SelectedCard).ToList();
             if(faceUpCards_afterMove.Count == 0 && startCardColum.faceDownCards.Count > 0){
                 Card faceDownCardToFlip = gameSnapshot.tableu[SelectedCard.column].faceDownCards.Peek();
                 return faceDownCardToFlip;
