@@ -14,6 +14,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
     public int x_padding = 5;
     public int y_padding = 50;
     public float faceDown_padding_y, faceUp_padding_y;
+    public Stack<Sequence> movesUndo_sequences = new Stack<Sequence>();
 
     public CardView GetCardAbove(CardView cardView)
     {
@@ -405,10 +406,13 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
     // }
 
     public void MoveCard(Move move){
+        Sequence undoSequence = DOTween.Sequence();
+
         Card selectedCard = move.movedCards.First();
         int targetColumn = move.to.index;
         
         CardView selectedCardView = this.cardData_to_cardView[selectedCard.ToString()];
+        Vector3 selectedCardPos = selectedCardView.positionBeforeDrag;
 
         Vector3 targetPos;
 
@@ -418,7 +422,10 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
             //Flip Card
             Card cardToFlip = move.GetCardToFlip();
             if(cardToFlip != null){
-                this.cardData_to_cardView[cardToFlip.ToString()].TurnFaceUp(flipSpeed);
+                CardView cardViewToFlip = this.cardData_to_cardView[cardToFlip.ToString()];
+                cardViewToFlip.TurnFaceUp(flipSpeed);
+                
+                undoSequence.AppendCallback(()=>cardViewToFlip.TurnFaceDown(flipSpeed));
             }
         }
 
@@ -435,9 +442,11 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
                 cardsToScoopRight[1] = topCardView_wastePile.CardBelow.CardBelow;
                 foreach(CardView card in cardsToScoopRight){
                     // card.MoveToPoint(card.transform.position + new Vector3(stockPile_padding_x, 0, 0));    
-                    card.transform.DOMove(card.transform.position + new Vector3(stockPile_padding_x, 0, 0), flipSpeed);    
+                    Vector3 cardPosition = card.transform.position;
+                    card.transform.DOMove(cardPosition + new Vector3(stockPile_padding_x, 0, 0), flipSpeed);
+                    
+                    undoSequence.Append(card.transform.DOMove(cardPosition, flipSpeed));
                 }
-
             }
         }
 
@@ -449,14 +458,23 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
                 Card destinationCard = targetCardColumn.faceUpCards.Last();
                 destinationCardView = this.cardData_to_cardView[destinationCard.ToString()];
                 
+                int currZDepth = Mathf.RoundToInt(selectedCardView.transform.position.z * -1);
+
                 targetPos = destinationCardView.transform.position - new Vector3(0,faceUp_padding_y,0);
 
                 selectedCardView.SetSortingOrderAndZDepth(targetCardColumn.TotalCardsCount());
                 targetPos.z = selectedCardView.transform.position.z; //Update Z depth
 
+                undoSequence.AppendCallback(()=>selectedCardView.SetSortingOrderAndZDepth(currZDepth));
+
             }else{
                 targetPos = this.tableuPositions[targetColumn];
+
+                int currZDepth = Mathf.RoundToInt(selectedCardView.transform.position.z * -1);
+
                 selectedCardView.SetSortingOrderAndZDepth(0);
+
+                undoSequence.AppendCallback(()=>selectedCardView.SetSortingOrderAndZDepth(currZDepth));
             }
 
         }else if(move.to.zone == Zone.Foundation){
@@ -469,8 +487,12 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
             throw new Exception("Move is invalid");
         }
 
+
         selectedCardView.MoveToPoint(targetPos);
 
+        undoSequence.Append(selectedCardView.transform.DOMove(selectedCardPos, flipSpeed));
+        undoSequence.Pause();
+        movesUndo_sequences.Push(undoSequence);
     }
 
     public void NotifyLegalMove(Move move)
@@ -537,6 +559,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
     public void NotifyUndoMove(Move moveToUndo)
     {
-        throw new NotImplementedException();
+        var sequence = movesUndo_sequences.Pop();
+        sequence.Play();
     }
 }

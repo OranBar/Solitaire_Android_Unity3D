@@ -29,7 +29,7 @@ public class CardView : MonoBehaviour
     
     private Vector3 offsetToCardAbove;
 
-    private Vector3 positionBeforeDrag;
+    public Vector3 positionBeforeDrag;
     // private Vector3 positionBeforeDrag;
 
     void Awake()

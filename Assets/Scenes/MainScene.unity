@@ -2020,7 +2020,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   columns_count: 7
   dirPathToSerialize: E:\Unity Projects\Solitaire\Assets\SerializedGames\
-  serializedGameToLoad_index: 7
+  serializedGameToLoad_index: 8
 --- !u!4 &1449731567
 Transform:
   m_ObjectHideFlags: 0
