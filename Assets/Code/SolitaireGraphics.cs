@@ -557,7 +557,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
                 cardView.transform.DOMove(movePoint, flipSpeed);
 
-                undoSequence.Append(cardView.transform.DOMove(startPoint, flipSpeed));
+                undoSequence.Join(cardView.transform.DOMove(startPoint, flipSpeed));
             }
         }
 
@@ -567,13 +567,23 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
 
     public void NotifyRestoreStockpileFromWastePile(List<Card> restoredStockPile){
+        Sequence undoSequence = DOTween.Sequence();
+
         //Flip and move those cards back to where they belong!
         foreach(Card card in restoredStockPile){
             CardView cardView = this.cardData_to_cardView[card.ToString()];
+            Vector3 cardStartPos = cardView.transform.position;
+
             
             cardView.transform.DOMove(stockPile_pos, flipSpeed);
             cardView.TurnFaceDown(flipSpeed);
+
+            undoSequence.PrependCallback(()=>cardView.TurnFaceUp(flipSpeed));
+            undoSequence.Join(cardView.transform.DOMove(cardStartPos, flipSpeed));
         }
+
+        undoSequence.Pause();
+        movesUndo_sequences.Push(undoSequence);
     }
 
     public void NotifyUndoMove(Move moveToUndo)
