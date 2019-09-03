@@ -114,7 +114,7 @@ public class GameManager : Singleton<GameManager>
         return false;
     }
 
-    private bool IsLegal_FoundationMove(Card selectedCard, FoundationPile pile)
+    public bool IsLegal_FoundationMove(Card selectedCard, FoundationPile pile)
     {
         if(selectedCard.suit == pile.suit){
             if(pile.cards.Count == 0){

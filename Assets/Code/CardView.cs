@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 
@@ -79,16 +80,13 @@ public class CardView : MonoBehaviour
         if(flipping){return;}
         if(isFaceUp == false){return;}
 
-        if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
-            if(this.CardAbove != null && this.CardAbove.isFaceUp){
-                return; //You can't take cards from the pile if they are not at the top.
-            }
+        if(TouchInputHelper.DoubleTapDetected() || Input.GetKey(KeyCode.LeftControl)){
+            //Don't drag
+        }else{
+            BeginDrag();
         }
-        
-        ChangeSortingLayer_Recursive("Selectedcards");
-        isBeingDragged = true;
-        positionBeforeDrag = this.transform.position;
     }
+
 
     void OnMouseUp()
     {
@@ -96,6 +94,27 @@ public class CardView : MonoBehaviour
         if(flipping){return;}
         if(isFaceUp == false){return;}
 
+        if(TouchInputHelper.DoubleTapDetected() || Input.GetKey(KeyCode.LeftControl)){
+            AutoMoveCard();
+        }else{
+            EndDrag();
+        }
+
+    }
+
+    private void BeginDrag(){
+        if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
+            if(this.CardAbove != null && this.CardAbove.isFaceUp){
+                return; //You can't take cards from the pile if they are not at the top.
+            }
+        }
+    
+        ChangeSortingLayer_Recursive("Selectedcards");
+        isBeingDragged = true;
+        positionBeforeDrag = this.transform.position;
+    }
+
+    private void EndDrag(){
         if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
             if(this.CardAbove != null && this.CardAbove.isFaceUp){
                 return; //You can't take cards from the pile if they are not at the top.
@@ -108,6 +127,36 @@ public class CardView : MonoBehaviour
         
         GameManager.Instance.NotifyCardDropped(cardData, dropPosition);
     }
+
+    private void AutoMoveCard(){
+        //Try all options
+        Card draggedCard = cardData;
+        Zone startZone = cardData.GetZone(CurrGameState);
+        int startIndex = cardData.GetColumn(CurrGameState);
+
+        for (int i = 0; i < CurrGameState.tableu.Length; i++)
+        {
+            if(startIndex == i && startZone == Zone.Tableu){continue;}
+
+            Card destinationCard = CurrGameState.tableu[i].faceUpCards.LastOrDefault();
+            if(GameManager.Instance.IsLegal_TableuMove(draggedCard, destinationCard)){
+                //We found it
+                GameManager.Instance.NotifyCardDropped(draggedCard, new TablePosition(Zone.Tableu, i));
+                return;
+            }
+        }
+
+        for (int i = 0; i < CurrGameState.foundationPiles.Length; i++)
+        {
+            if(startIndex == i && startZone == Zone.Foundation){continue;}
+            
+            if(GameManager.Instance.IsLegal_FoundationMove(draggedCard, CurrGameState.foundationPiles[i])){
+                GameManager.Instance.NotifyCardDropped(draggedCard, new TablePosition(Zone.Foundation, i));
+                return;
+            }
+        }
+    }
+
 
     Vector3 currentVelocity;
     bool isBeingDragged=false;
