@@ -34,6 +34,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
     protected override void InitTon(){ 
         GameManager.Instance.RegisterSolitaireEventsHandler(this);
+        DOTween.SetTweensCapacity(500, 50);
     }
     
     public CardView GetCardAbove(CardView cardView)
@@ -470,7 +471,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
         revealedStockCardView.SetSortingOrderAndZDepth(wastePileCount-1, false);
         
-        undoSequence.AppendCallback(()=>revealedStockCardView.SetSortingOrderAndZDepth(currZDepth));
+        undoSequence.AppendCallback(()=>revealedStockCardView.SetSortingOrderAndZDepth(currZDepth, false));
         
 
         Vector3 targetMovePoint = revealedStockCardView.transform.position;
@@ -516,8 +517,10 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
             CardView cardView = this.cardData_to_cardView[card.ToString()];
             Vector3 cardStartPos = cardView.transform.position;
 
-            
-            cardView.transform.DOMove(stockPile_pos, flipSpeed);
+            Vector3 moveLocation = stockPile_pos;
+            moveLocation.z = cardView.transform.position.z;
+
+            cardView.transform.DOMove(moveLocation, flipSpeed);
             cardView.TurnFaceDown(flipSpeed);
 
             undoSequence.PrependCallback(()=>cardView.TurnFaceUp(flipSpeed));
