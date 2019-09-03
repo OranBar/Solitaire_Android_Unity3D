@@ -34,6 +34,8 @@ public class CardView : MonoBehaviour
     public GameState CurrGameState{
         get{ return GameManager.Instance.gameState; }
     }
+    
+    private static bool flipping = false;
 
     void Awake()
     {
@@ -51,55 +53,60 @@ public class CardView : MonoBehaviour
     public void TurnFaceUp(float flipSpeed){
         Sequence flipSequence = DOTween.Sequence();
         
+        flipping = true;
         flipSequence
         .Append(this.transform.DORotate(new Vector3(0, -90, 0), flipSpeed / 2f)
             .OnComplete(() => { front.SetActive(true); back.SetActive(false); isFaceUp=true;}))
-                .Append(this.transform.DORotate(new Vector3(0, 0, 0), flipSpeed / 2f));
+                .Append(this.transform.DORotate(new Vector3(0, 0, 0), flipSpeed / 2f))
+                    .OnComplete(()=>flipping = false);
+
     }
 
     public void TurnFaceDown(float flipSpeed){
         Sequence flipSequence = DOTween.Sequence();
         
+        flipping = true;
         flipSequence
         .Append(this.transform.DORotate(new Vector3(0, -90, 0), flipSpeed / 2f)
             .OnComplete(() => { front.SetActive(false); back.SetActive(true); isFaceUp=false;}))
-                .Append(this.transform.DORotate(new Vector3(0, 0, 0), flipSpeed / 2f));
+                .Append(this.transform.DORotate(new Vector3(0, 0, 0), flipSpeed / 2f))
+                    .OnComplete(()=>flipping = false);
     }
 
     void OnMouseDown()
     {
         if(PauseMenu.Instance.isPaused){return;}
+        if(flipping){return;}
+        if(isFaceUp == false){return;}
 
-        if(isFaceUp){
-            if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
-                if(this.CardAbove != null && this.CardAbove.isFaceUp){
-                    return; //You can't take cards from the pile if they are not at the top.
-                }
+        if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
+            if(this.CardAbove != null && this.CardAbove.isFaceUp){
+                return; //You can't take cards from the pile if they are not at the top.
             }
-            
-            ChangeSortingLayer_Recursive("Selectedcards");
-            isBeingDragged = true;
-            positionBeforeDrag = this.transform.position;
         }
+        
+        ChangeSortingLayer_Recursive("Selectedcards");
+        isBeingDragged = true;
+        positionBeforeDrag = this.transform.position;
     }
 
     void OnMouseUp()
     {
         if(PauseMenu.Instance.isPaused){return;}
+        if(flipping){return;}
+        if(isFaceUp == false){return;}
 
-        if(isFaceUp){
-            if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
-                if(this.CardAbove != null && this.CardAbove.isFaceUp){
-                    return; //You can't take cards from the pile if they are not at the top.
-                }
+        if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
+            if(this.CardAbove != null && this.CardAbove.isFaceUp){
+                return; //You can't take cards from the pile if they are not at the top.
             }
-            ChangeSortingLayer_Recursive("Default");
-            isBeingDragged = false;
-
-            TablePosition dropPosition = SolitaireGraphics.Instance.GetTablePosition(this.transform.position);
-            
-            GameManager.Instance.NotifyCardDropped(cardData, dropPosition);
         }
+        ChangeSortingLayer_Recursive("Default");
+        isBeingDragged = false;
+
+        TablePosition dropPosition = SolitaireGraphics.Instance.GetTablePosition(this.transform.position);
+        
+        GameManager.Instance.NotifyCardDropped(cardData, dropPosition);
     }
 
     Vector3 currentVelocity;
