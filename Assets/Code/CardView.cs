@@ -82,6 +82,7 @@ public class CardView : MonoBehaviour
 
         if(TouchInputHelper.DoubleTapDetected() || Input.GetKey(KeyCode.LeftControl)){
             //Don't drag
+            UndoDrag();
         }else{
             BeginDrag();
         }
@@ -96,6 +97,7 @@ public class CardView : MonoBehaviour
 
         if(TouchInputHelper.DoubleTapDetected() || Input.GetKey(KeyCode.LeftControl)){
             AutoMoveCard();
+            UndoDrag();
         }else{
             EndDrag();
         }
