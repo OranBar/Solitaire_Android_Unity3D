@@ -18,7 +18,7 @@ public class Scoring : MonoBehaviour, ISolitaireEventsHandlers
 
     private void SetScore(int amount){
         this.score = Mathf.Max(amount, 0);  //Don't let score go below zero
-        this.scoreText.text = amount.ToString();
+        this.scoreText.text = score.ToString();
     }
 
     private void IncrementMoves(){
@@ -52,9 +52,9 @@ public class Scoring : MonoBehaviour, ISolitaireEventsHandlers
         int scoreToAdd = 0;
         Card selectedCard = move.movedCards.First();
 
-        // if(move.MoveResultsInCardFlipped()){
-        //     scoreToAdd += 5;
-        // }
+        if(move.GetCardToFlip() != null){
+            scoreToAdd += 5;
+        }
         if(move.to.zone == Zone.Foundation){
             scoreToAdd += 10;
         }
