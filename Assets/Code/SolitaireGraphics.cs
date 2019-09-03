@@ -513,19 +513,24 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
     }
 
     public void NotifyFlipStockCardMove(Move move){
-        int wastePileCount = move.gameSnapshot.wastePile.Count;
+        Sequence undoSequence = DOTween.Sequence();
 
-        // if(wastePileCount > 0){
-        //     //Disable interactions with the card that was at the top of the waste pile, before this move, which made it second to top.
-        //     this.cardData_to_cardView[wastePile.First()].enabled = false;
-        // }
+        int wastePileCount = move.gameSnapshot.wastePile.Count;
 
         //Get the card on top of the stock. Move and flip it.
         CardView revealedStockCardView = this.cardData_to_cardView[move.SelectedCard.ToString()];
         // revealedStockCardView.enabled = true;
         Vector3 cardSize = ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
+
+        //For undo sequence
+        Vector3 currPosition = revealedStockCardView.transform.position;
+        int currZDepth = Mathf.RoundToInt(revealedStockCardView.transform.position.z * -1);
+
         revealedStockCardView.SetSortingOrderAndZDepth(wastePileCount-1, false);
         
+        undoSequence.AppendCallback(()=>revealedStockCardView.SetSortingOrderAndZDepth(currZDepth));
+        
+
         Vector3 targetMovePoint = revealedStockCardView.transform.position;
         float mult = Mathf.Max(3 - wastePileCount, 1);
         targetMovePoint.x = targetMovePoint.x - cardSize.x * (2/3f);
@@ -535,24 +540,31 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         revealedStockCardView.transform.DOMove(targetMovePoint, flipSpeed);
         revealedStockCardView.TurnFaceUp(flipSpeed);
 
+        undoSequence.AppendCallback(()=>revealedStockCardView.TurnFaceDown(flipSpeed));
+        undoSequence.Append(revealedStockCardView.transform.DOMove(currPosition, flipSpeed));
+
 
         //Scoop left the upmost two cards in the pile, if we are now exceeding 3 cards
         if(wastePileCount >= 3){
-            ScoopCardsLeft(move.gameSnapshot.wastePile.Take(3).ToList());
+            List<Card> cardsToMove = move.gameSnapshot.wastePile.Take(3).ToList();
+            for (int i = 0; i < 2; i++)
+            {
+                Card cardToMoveLeft = cardsToMove[i];
+                CardView cardView = this.cardData_to_cardView[cardToMoveLeft.ToString()];
+                Vector3 startPoint = cardView.transform.position;
+                
+                Vector3 movePoint = cardView.transform.position - new Vector3(stockPile_padding_x,0,0);
+
+                cardView.transform.DOMove(movePoint, flipSpeed);
+
+                undoSequence.Append(cardView.transform.DOMove(startPoint, flipSpeed));
+            }
         }
+
+        undoSequence.Pause();
+        movesUndo_sequences.Push(undoSequence);
     }
 
-    private void ScoopCardsLeft(List<Card> cardsToMove){
-        for (int i = 0; i < 2; i++)
-        {
-            Card cardToMoveLeft = cardsToMove[i];
-            CardView cardView = this.cardData_to_cardView[cardToMoveLeft.ToString()];
-            
-            Vector3 movePoint = cardView.transform.position - new Vector3(stockPile_padding_x,0,0);
-
-            cardView.transform.DOMove(movePoint, flipSpeed);
-        }
-    }
 
     public void NotifyRestoreStockpileFromWastePile(List<Card> restoredStockPile){
         //Flip and move those cards back to where they belong!
