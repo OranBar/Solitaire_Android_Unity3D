@@ -32,6 +32,10 @@ public class CardView : MonoBehaviour
     public Vector3 positionBeforeDrag;
     // private Vector3 positionBeforeDrag;
 
+    public GameState CurrGameState{
+        get{ return GameManager.Instance.gameState; }
+    }
+
     void Awake()
     {
         mySpriteRenderers = new List<SpriteRenderer>();
@@ -68,7 +72,7 @@ public class CardView : MonoBehaviour
         if(PauseMenu.Instance.isPaused){return;}
 
         if(isFaceUp){
-            if(this.cardData.zone == Zone.Waste){
+            if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
                 if(this.CardAbove != null && this.CardAbove.isFaceUp){
                     return; //You can't take cards from the pile if they are not at the top.
                 }
@@ -85,7 +89,7 @@ public class CardView : MonoBehaviour
         if(PauseMenu.Instance.isPaused){return;}
 
         if(isFaceUp){
-            if(this.cardData.zone == Zone.Waste){
+            if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
                 if(this.CardAbove != null && this.CardAbove.isFaceUp){
                     return; //You can't take cards from the pile if they are not at the top.
                 }
@@ -146,7 +150,7 @@ public class CardView : MonoBehaviour
         // transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref currentVelocity, speed * Time.deltaTime);
         MoveToPoint(targetPosition);
         
-        if(this.cardData.zone == Zone.Tableu && CardAbove != null && CardAbove.isFaceUp){
+        if(this.cardData.GetZone(CurrGameState) == Zone.Tableu && CardAbove != null && CardAbove.isFaceUp){
             targetPosition.z = CardAbove.transform.position.z;
             // CardAbove.MoveTowardsPoint_Recursive(targetPosition - offsetToCardAbove, speed * 1.5f);
             StartCoroutine(MoveToPoint_Delayed_Coro(CardAbove, targetPosition - offsetToCardAbove, speed, 0.01f));

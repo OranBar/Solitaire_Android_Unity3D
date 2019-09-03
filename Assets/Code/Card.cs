@@ -4,13 +4,21 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class Card: ICloneable, IEquatable<Card>
+public class Card : ICloneable, IEquatable<Card>
 {
     public readonly int value;
     public readonly Suit suit;
     public readonly SuitColor suitColor;
-    public Zone zone;
-    public int column = -1; //Only when zone == tableu
+    // public Zone zone;
+    // public int column = -1; //Only when zone == tableu
+
+    public Zone GetZone(GameState snapshot){
+        return snapshot.GetCardZone(this);
+    }
+
+    public int GetColumn(GameState snapshot){
+        return snapshot.GetCardColumn(this);
+    }
 
     public Card(int value, Suit suit)
     {
@@ -21,8 +29,6 @@ public class Card: ICloneable, IEquatable<Card>
 
     public object Clone(){
         Card result = new Card(value, suit);
-        result.zone = this.zone;
-        result.column = this.column;
         return result;
     }
 
@@ -102,28 +108,3 @@ public class Card: ICloneable, IEquatable<Card>
         }
 #endregion
 }
-
-
-/*
-public class Card 
-{
-    
-    public readonly int value;
-    public readonly int suit;
-    public SuitColor suitColor;
-    public List<Card> cardsBelow;
-    public List<Card> cardsAbove;
-    public bool isFaceDown;
-
-    public void AddCard(Card newCard){
-        foreach(Card card in this.cardsBelow){
-            card.cardsAbove.Add(newCard);
-        }
-        foreach(Card card in this.cardsAbove){
-            card.cardsAbove.Add(newCard);
-        }
-        
-    }
-}
-
- */

@@ -14,11 +14,26 @@ public class GameManager : Singleton<GameManager>
     public int columns_count = 7;
 //---------------------------
 
-    public CardColumn[] tableu;
-    public Stack<Card> stockPile;
-    public Stack<Card> wastePile;
+    public GameState gameState;
+    
+    public CardColumn[] Tableu{
+        get{return gameState.tableu;}
+        set{ gameState.tableu = value;}
+    }
+    public Stack<Card> StockPile{
+        get{return gameState.stockPile;}
+        set{ gameState.stockPile = value;}
+    }
+    public Stack<Card> WastePile{
+        get{ return gameState.wastePile; }
+        set{ gameState.wastePile = value;}
+    }
     // public Dictionary<Suit, Stack<Card>> suit_to_foundationPile;
-    public FoundationPile[] foundationPiles;
+    public FoundationPile[] FoundationPiles{
+        get{return gameState.foundationPiles;}
+        set{ gameState.foundationPiles = value;}
+    }
+
     //public something stock;
     // public DeckShuffler shuffler, shufflerClone;
     public DeckShuffler shufflerClone;
@@ -56,23 +71,14 @@ public class GameManager : Singleton<GameManager>
 
     public void InitGame(DeckShuffler seed)
     {
-        this.stockPile = new Stack<Card>();
-        this.wastePile = new Stack<Card>();
+        gameState = new GameState();
         this.movesHistory = new Stack<Move>();
-
-        Suit[] suits = new Suit[]{Suit.Hearts, Suit.Diamonds, Suit.Clubs, Suit.Spades};
-        foundationPiles = new FoundationPile[suits.Length];
-        for (int i = 0; i < suits.Length; i++)
-        {
-            FoundationPile pile = new FoundationPile(suits[i]);
-            foundationPiles[i] = pile;
-        }
 
         shufflerClone = seed.Clone() as DeckShuffler;
 
         SetUpTable(columns_count, seed);
         foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
-            subscribedHandler.NotifyBeginGame(tableu, stockPile);
+            subscribedHandler.NotifyBeginGame(Tableu, StockPile);
         }
     }
 
@@ -87,34 +93,29 @@ public class GameManager : Singleton<GameManager>
         }
         
         //Init Tableu
-        tableu = new CardColumn[noOfColumns];
+        Tableu = new CardColumn[noOfColumns];
         for (int i = 0; i < noOfColumns; i++)
         {
             CardColumn newCardColumn = new CardColumn();
 
             List<Card> faceDownCards = shuffler.DrawCards(i);
             newCardColumn.faceDownCards = new Stack<Card>(faceDownCards);
-            foreach(var card in faceDownCards){
-                card.zone = Zone.Tableu;
-                card.column = i;
-            }
+            // foreach(var card in faceDownCards){
+            //     card.zone = Zone.Tableu;
+            //     card.column = i;
+            // }
 
             List<Card> faceUpCard = shuffler.DrawCards(1);
             newCardColumn.faceUpCards = faceUpCard;
-            faceUpCard[0].zone = Zone.Tableu;
-            faceUpCard[0].column = i;
+            // faceUpCard[0].zone = Zone.Tableu;
+            // faceUpCard[0].column = i;
 
-            tableu[i] = newCardColumn;
+            Tableu[i] = newCardColumn;
         }
         //Init Stock
-        this.stockPile = new Stack<Card>(shuffler.DrawCards(shuffler.GetRemainigCardsCount()));
-        foreach(var stockCard in stockPile){
-            stockCard.zone = Zone.Waste;
-        }
-        //Init Foundation Piles
-        // this.suit_to_foundationPile = new Dictionary<Suit, List<Card>>();
-        // foreach(Suit suit in Enum.GetValues(typeof(Suit))){
-        //     this.suit_to_foundationPile[suit] = new List<Card>();
+        StockPile = new Stack<Card>(shuffler.DrawCards(shuffler.GetRemainigCardsCount()));
+        // foreach(var stockCard in StockPile){
+        //     stockCard.zone = Zone.Waste;
         // }
     }
 
@@ -159,47 +160,51 @@ public class GameManager : Singleton<GameManager>
         Card selectedCard = move.movedCards.First();
 
         if(move.from.zone == Zone.Tableu){
+            int selectedCardColumn = selectedCard.GetColumn(move.gameSnapshot);
             //Update start tableu pile - unreference moved cards
-            CardColumn startCardColum = this.tableu[selectedCard.column];
+            CardColumn startCardColum = this.Tableu[selectedCardColumn];
             startCardColum.faceUpCards = startCardColum.faceUpCards.TakeUntil(c => c == selectedCard).ToList();
        
             //Flip card below if needed
             Card cardToFlip = move.GetCardToFlip();
             if(cardToFlip != null){
-                Card faceDownCardToFlip = this.tableu[selectedCard.column].faceDownCards.Pop();
+                Card faceDownCardToFlip = this.Tableu[selectedCardColumn].faceDownCards.Pop();
                 startCardColum.faceUpCards.Add(cardToFlip);
             }
         }
         if(move.from.zone == Zone.Foundation){
             //Update foundation pile - Remove moved card
-            foundationPiles[move.from.index].cards.Pop();
+            FoundationPiles[move.from.index].cards.Pop();
         }
         if(move.from.zone == Zone.Waste){
             //Update waste Pile (linked to stock pile)- Remove selected card
-            this.wastePile.Pop();
+            this.WastePile.Pop();
         }
         //--------------------
         if(move.to.zone == Zone.Tableu){
             //Update destination tableu pile - reference moved cards
-            CardColumn targetCardColumn = this.tableu[move.to.index];
+            CardColumn targetCardColumn = this.Tableu[move.to.index];
             targetCardColumn.faceUpCards.AddRange(move.movedCards);
         }
         if(move.to.zone == Zone.Foundation){
             //Update foundation pile - Add moved card
-            foundationPiles[move.to.index].cards.Push(selectedCard);
+            FoundationPiles[move.to.index].cards.Push(selectedCard);
         }
             
         //Update cards with new zone and column 
-        foreach (Card card in move.movedCards)
-        {
-            card.zone = move.to.zone;
-            card.column = move.to.index;
-        }
+        // foreach (Card card in move.movedCards)
+        // {
+        //     card.zone = move.to.zone;
+        //     card.column = move.to.index;
+        // }
     }
 
     public Card GetCardAbove(Card card){
-        if(card.zone == Zone.Tableu){
-            CardColumn cardColumn = this.tableu[card.column];
+        Zone cardZone = card.GetZone(gameState);
+        int cardColumnIndex = card.GetColumn(gameState);
+
+        if(cardZone == Zone.Tableu){
+            CardColumn cardColumn = this.Tableu[cardColumnIndex];
             
             List<Card> faceUpCards = cardColumn.faceUpCards;
             if(faceUpCards.Contains(card)){
@@ -221,8 +226,8 @@ public class GameManager : Singleton<GameManager>
                 }
             }
         }
-        if(card.zone == Zone.Waste){
-            var wastePileCards = this.wastePile.Reverse().ToList();
+        if(cardZone == Zone.Waste){
+            var wastePileCards = this.WastePile.Reverse().ToList();
             if(wastePileCards.Contains(card)){
                 int index = wastePileCards.IndexOf(card);
                 if(index+1 < wastePileCards.Count ){
@@ -237,8 +242,11 @@ public class GameManager : Singleton<GameManager>
     }
 
     public Card GetCardBelow(Card card){
-        if(card.zone == Zone.Tableu){
-            CardColumn cardColumn = this.tableu[card.column];
+        Zone cardZone = card.GetZone(gameState);
+        int cardColumnIndex = card.GetColumn(gameState);
+
+        if(cardZone == Zone.Tableu){
+            CardColumn cardColumn = this.Tableu[cardColumnIndex];
             
             List<Card> faceUpCards = cardColumn.faceUpCards;
             List<Card> faceDownCards = cardColumn.faceDownCards.Reverse().ToList();
@@ -263,8 +271,8 @@ public class GameManager : Singleton<GameManager>
                 }
             }
         }
-        if(card.zone == Zone.Waste){
-            var wastePileCards = this.wastePile.Reverse().ToList();
+        if(cardZone == Zone.Waste){
+            var wastePileCards = this.WastePile.Reverse().ToList();
             if(wastePileCards.Contains(card)){
                 int index = wastePileCards.IndexOf(card);
                 if(index-1 >= 0){
@@ -280,7 +288,10 @@ public class GameManager : Singleton<GameManager>
 
     public void NotifyCardDropped(Card selectedCard, TablePosition dropPosition){
         bool isValidMove = false;
-        TablePosition from = new TablePosition(selectedCard.zone, selectedCard.column);
+        Zone selectedCardZone = selectedCard.GetZone(gameState);
+        int selectedCardColumnIndex = selectedCard.GetColumn(gameState);
+
+        TablePosition from = new TablePosition(selectedCardZone, selectedCardColumnIndex);
 
         if(from.zone == dropPosition.zone && from.index == dropPosition.index){
             isValidMove = false;
@@ -288,14 +299,14 @@ public class GameManager : Singleton<GameManager>
         else if(dropPosition.zone == Zone.Tableu)
         {
             int targetColumn = dropPosition.index;
-            CardColumn targetCardColumn = this.tableu[targetColumn];
+            CardColumn targetCardColumn = this.Tableu[targetColumn];
             Card cardToDropOn = targetCardColumn.faceUpCards.LastOrDefault();
 
             isValidMove = IsLegal_TableuMove(selectedCard, cardToDropOn);
         }
         else if(dropPosition.zone == Zone.Foundation)
         {
-            isValidMove = IsLegal_FoundationMove(selectedCard, foundationPiles[dropPosition.index]);
+            isValidMove = IsLegal_FoundationMove(selectedCard, FoundationPiles[dropPosition.index]);
         } else {
             //Card was dropped on the upper part of the table, between foundation piles and deckPile, or on the same column as it started
             isValidMove = false;
@@ -307,11 +318,11 @@ public class GameManager : Singleton<GameManager>
             //If the moved card comes from the tableu, there might other cards above that need to be moved as well.
             //This doens't happen for moves where the selected card comes from foundation piles, stock pile or waste pile.
            
-            if (selectedCard.zone == Zone.Tableu)
+            if (selectedCardZone == Zone.Tableu)
             {  
-                cardsBeingMoved.AddRange(this.tableu[selectedCard.column].faceUpCards.SkipWhile(c => c != selectedCard).Skip(1));
+                cardsBeingMoved.AddRange(this.Tableu[selectedCardColumnIndex].faceUpCards.SkipWhile(c => c != selectedCard).Skip(1));
             }
-            SerializedGameState snapshot = new SerializedGameState(this);
+            GameState snapshot = gameState.Clone() as GameState;
             Move move = new Move(cardsBeingMoved, from, dropPosition, snapshot);
             //Notify subscribers
             foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
@@ -341,31 +352,31 @@ public class GameManager : Singleton<GameManager>
     }
     public void NotifyStockMove(){
         
-        if(stockPile.Count > 0){
+        if(StockPile.Count > 0){
             List<Card> movedCards = new List<Card>();
-            movedCards.Add(stockPile.Peek());
-            Move move = new Move(movedCards, new TablePosition(Zone.Stock, -1), new TablePosition(Zone.Waste, -1), new SerializedGameState(this));
+            movedCards.Add(StockPile.Peek());
+            Move move = new Move(movedCards, new TablePosition(Zone.Stock, -1), new TablePosition(Zone.Waste, -1), gameState.Clone() as GameState);
 
             foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
                 // subscribedHandler.NotifyFlipStockCardMove(stockPile.Peek(), new List<Card>(wastePile));
                 subscribedHandler.NotifyFlipStockCardMove(move);
             }
             //Update Game Data
-            Card nextCard = stockPile.Pop();
-            wastePile.Push(nextCard);
+            Card nextCard = StockPile.Pop();
+            WastePile.Push(nextCard);
             
             movesHistory.Push(move);
 
             // graphics.NotifyFlipStockCardMove(nextCard, wastePile.Count);
         } else{
-            Move move = new Move(this.wastePile.Reverse().ToList(), new TablePosition(Zone.Waste, -1), new TablePosition(Zone.Stock, -1), new SerializedGameState(this));
+            Move move = new Move(this.WastePile.Reverse().ToList(), new TablePosition(Zone.Waste, -1), new TablePosition(Zone.Stock, -1), gameState.Clone() as GameState);
 
             foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
-                subscribedHandler.NotifyRestoreStockpileFromWastePile(new List<Card>(wastePile));
+                subscribedHandler.NotifyRestoreStockpileFromWastePile(new List<Card>(WastePile));
             }
-            while(wastePile.Count > 0){
-                Card card = wastePile.Pop();
-                stockPile.Push(card);
+            while(WastePile.Count > 0){
+                Card card = WastePile.Pop();
+                StockPile.Push(card);
             }
 
             movesHistory.Push(move);
@@ -462,10 +473,10 @@ public class GameManager : Singleton<GameManager>
             return;
         }
         Move moveToUndo = movesHistory.Pop();
-        this.tableu = moveToUndo.gameSnapshot.tableu;
-        this.stockPile = moveToUndo.gameSnapshot.stockPile;
-        this.wastePile = moveToUndo.gameSnapshot.wastePile;
-        this.foundationPiles = moveToUndo.gameSnapshot.foundationPiles;
+        this.Tableu = moveToUndo.gameSnapshot.tableu;
+        this.StockPile = moveToUndo.gameSnapshot.stockPile;
+        this.WastePile = moveToUndo.gameSnapshot.wastePile;
+        this.FoundationPiles = moveToUndo.gameSnapshot.foundationPiles;
         foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
             subscribedHandler.NotifyUndoMove(moveToUndo);
         }
