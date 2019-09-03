@@ -11,17 +11,25 @@ public class ButtonCooldown : MonoBehaviour
     public void Start(){
         myButton = GetComponent<Button>();
         beginCooldown = SolitaireGraphics.Instance.cardToTableu_animDuration * 29;
-        
+
         if(beginCooldown > 0){
-            myButton.interactable = false;
-            StartCoroutine(SetButtonInteractable_Coro(true, beginCooldown));
+            ActivateBeginCooldown();
         }
         if(clickCooldown > 0){
             myButton.onClick.AddListener(()=>{
-                myButton.interactable = false;
-                StartCoroutine(SetButtonInteractable_Coro(true, clickCooldown));
+                ActivateClickCooldown();
             });
         }
+    }
+
+    public void ActivateBeginCooldown(){
+        myButton.interactable = false;
+        StartCoroutine(SetButtonInteractable_Coro(true, beginCooldown));
+    }
+
+    public void ActivateClickCooldown(){
+        myButton.interactable = false;
+        StartCoroutine(SetButtonInteractable_Coro(true, clickCooldown));
     }
 
     private IEnumerator SetButtonInteractable_Coro(bool interactable, float delay){
