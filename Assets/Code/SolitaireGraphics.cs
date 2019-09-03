@@ -8,7 +8,7 @@ using DG.Tweening;
 
 public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsHandlers
 {
-//---------------------------
+//--------------------------- Inspector Variables
     public GameObject cardPrefab, foundationPilePrefab;
     public RectTransform topBar;
     public int x_padding = 5;
@@ -16,6 +16,29 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
     public float faceDown_padding_y, faceUp_padding_y;
     public Stack<Sequence> movesUndo_sequences = new Stack<Sequence>();
 
+    public float stockPile_padding_x = 0.3215505f;
+
+    public AnimationCurve easeFunction;
+    public float cardToTableu_animDuration = 0.6f;
+    public float flipSpeed = 0.6f;
+
+//---------------------------
+
+    private Vector3 stockPile_pos;
+
+    private Vector3[] foundationPilesPositions;
+    private Vector3[] tableuPositions;
+    private Dictionary<string, CardView> cardData_to_cardView = new Dictionary<string, CardView>();
+    private Transform cardsContainer;
+
+
+    protected override void InitTon(){ }
+
+    void Awake()
+    {
+        GameManager.Instance.RegisterSolitaireEventsHandler(this);
+    }
+    
     public CardView GetCardAbove(CardView cardView)
     {
         Card cardAbove = GameManager.Instance.GetCardAbove(cardView.cardData);
@@ -34,27 +57,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         return this.cardData_to_cardView[cardBelow.ToString()];
     }
 
-    public float stockPile_padding_x = 0.3215505f;
-
-    public AnimationCurve easeFunction;
-    public float cardToTableu_animDuration = 0.6f;
-    public float flipSpeed = 0.6f;
-
-//---------------------------
-
-    protected override void InitTon(){ }
-
-    void Awake()
-    {
-        GameManager.Instance.RegisterSolitaireEventsHandler(this);
-    }
-
-    private Vector3 stockPile_pos;
-
-    private Vector3[] foundationPilesPositions;
-    private Vector3[] tableuPositions;
-    private Dictionary<string, CardView> cardData_to_cardView = new Dictionary<string, CardView>();
-    private Transform cardsContainer;
 
     public Vector2 ComputeCardSize_ScreenSpace(int noOfColumns, int x_padding, int y_padding){
         int screenWidth = Camera.main.pixelWidth;
@@ -205,11 +207,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
             Card stockPileCard = stockPileCardsArr[i];
             GameObject stockPileGO = this.InstantiateCardGameObject(suggestedCardSize, stockPile_pos, false, stockPileCard, i);
             CardView stockPileCardView = stockPileGO.GetComponent<CardView>();
-            
-            // if(previousCardView != null){
-            //     stockPileCardView.CardBelow = previousCardView;
-            //     previousCardView.CardAbove = stockPileCardView;
-            // }
 
             previousCardView = stockPileCardView;
             stockPileGO.name = stockPileCard.ToString()+"(Stock)";
@@ -256,18 +253,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         GameObject cardGO = this.InstantiateCardGameObject(suggestedCardSize, stockPile_pos, false, card, facedownCardPileBelow.Length);
         CardView cardView = cardGO.GetComponent<CardView>();
         
-        // cardView.cardData = tableu[column].faceUpCards[0];
-        // this.cardData_to_cardView[cardView.cardData] = cardView;
-        
         cardGO.name = card.ToString();
-
-        //Reference card below and above
-        // if (facedownCardPileBelow.Length > 0)
-        // {
-        //     CardView topmostFaceDownCard = facedownCardPileBelow.Last();
-        //     cardView.CardBelow = topmostFaceDownCard;
-        //     topmostFaceDownCard.CardAbove = cardView;
-        // }
 
         return cardGO;
     }
@@ -277,18 +263,8 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         //TODO: assign value and suit
         GameObject faceDownCardGO = this.InstantiateCardGameObject(suggestedCardSize, stockPile_pos, false, faceDownCards_data[ii], cardsBelow: ii);
         CardView faceDownCardView = faceDownCardGO.GetComponent<CardView>();
-        // faceDownCardView.cardData = faceDownCards_data[ii];
-        // this.cardData_to_cardView[faceDownCardView.cardData] = faceDownCardView;
-        
-        faceDownCardGO.name = faceDownCardView.cardData.ToString();
 
-        //Reference card below and above
-        // cardPile[ii] = faceDownCardView;
-        // if (ii > 0)
-        // {
-        //     cardPile[ii].CardBelow = cardPile[ii - 1];
-        //     cardPile[ii - 1].CardAbove = cardPile[ii];
-        // }
+        faceDownCardGO.name = faceDownCardView.cardData.ToString();
 
         return faceDownCardGO;
     }
@@ -376,35 +352,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
         }
     }
 
-    
-    // public int GetClosestColumn(Vector2 releasedCardPosition){
-    //     float minDistance = float.MaxValue;
-    //     int closestColumnToPoint = -1;
-
-    //     for (int i = 0; i < this.tableuPositions.Length; i++)
-    //     {
-    //         var pos = tableuPositions[i];
-    //         float distance = Mathf.Abs(releasedCardPosition.x - pos.x);
-    //         if(distance < minDistance){
-    //             minDistance = distance;
-    //             closestColumnToPoint = i;
-    //         }
-    //     }
-
-    //     if(IsPointAboveTableu(releasedCardPosition)){
-    //             //We are trying to place on foundation pile
-    //         if(closestColumnToPoint < 4){
-    //             return -(closestColumnToPoint+1);
-    //         } else {
-    //             return Zone.NotAZone;  //Means invalid column
-    //         }
-    //     } else{ 
-    //         // We are trying to place on tableu
-    //         return closestColumnToPoint;
-    //     }
-
-    // }
-
     public void MoveCard(Move move){
         Sequence undoSequence = DOTween.Sequence();
 
@@ -441,7 +388,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
                 cardsToScoopRight[0] = topCardView_wastePile.CardBelow;
                 cardsToScoopRight[1] = topCardView_wastePile.CardBelow.CardBelow;
                 foreach(CardView card in cardsToScoopRight){
-                    // card.MoveToPoint(card.transform.position + new Vector3(stockPile_padding_x, 0, 0));    
                     Vector3 cardPosition = card.transform.position;
                     card.transform.DOMove(cardPosition + new Vector3(stockPile_padding_x, 0, 0), flipSpeed);
                     
@@ -519,7 +465,6 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
         //Get the card on top of the stock. Move and flip it.
         CardView revealedStockCardView = this.cardData_to_cardView[move.SelectedCard.ToString()];
-        // revealedStockCardView.enabled = true;
         Vector3 cardSize = ComputeCardSize_WorldSpace(GameManager.Instance.columns_count, x_padding, y_padding);
 
         //For undo sequence

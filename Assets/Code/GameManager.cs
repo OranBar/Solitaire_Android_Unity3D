@@ -28,21 +28,16 @@ public class GameManager : Singleton<GameManager>
         get{ return gameState.wastePile; }
         set{ gameState.wastePile = value;}
     }
-    // public Dictionary<Suit, Stack<Card>> suit_to_foundationPile;
     public FoundationPile[] FoundationPiles{
         get{return gameState.foundationPiles;}
         set{ gameState.foundationPiles = value;}
     }
 
-    //public something stock;
-    // public DeckShuffler shuffler, shufflerClone;
     public DeckShuffler shufflerClone;
 
     public Stack<Move> movesHistory = new Stack<Move>();
 
-    protected override void InitTon(){ 
-
-    }
+    protected override void InitTon(){ }
 
     public void RegisterSolitaireEventsHandler(ISolitaireEventsHandlers eventHandler){
         subscribedInstances.Add(eventHandler);
@@ -52,12 +47,6 @@ public class GameManager : Singleton<GameManager>
     void Start()
     {
         InitGame();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 
     [ContextMenu("InitGame")]
@@ -100,33 +89,16 @@ public class GameManager : Singleton<GameManager>
 
             List<Card> faceDownCards = shuffler.DrawCards(i);
             newCardColumn.faceDownCards = new Stack<Card>(faceDownCards);
-            // foreach(var card in faceDownCards){
-            //     card.zone = Zone.Tableu;
-            //     card.column = i;
-            // }
+            
 
             List<Card> faceUpCard = shuffler.DrawCards(1);
             newCardColumn.faceUpCards = faceUpCard;
-            // faceUpCard[0].zone = Zone.Tableu;
-            // faceUpCard[0].column = i;
 
             Tableu[i] = newCardColumn;
         }
         //Init Stock
         StockPile = new Stack<Card>(shuffler.DrawCards(shuffler.GetRemainigCardsCount()));
-        // foreach(var stockCard in StockPile){
-        //     stockCard.zone = Zone.Waste;
-        // }
     }
-
-   
-    // public Stack<Card> GetFoundationPile(int column){
-        
-    // }
-
-    // public Stack<Card> GetFoundationPile(Suit suit){
-    //     return this.suit_to_foundationPile[suit];
-    // }
 
     public bool IsLegal_TableuMove(Card draggedCard, Card destinationCard){
         //If destinationCard is null, then we are dropping on an empty column, and we only allow kings
@@ -190,13 +162,6 @@ public class GameManager : Singleton<GameManager>
             //Update foundation pile - Add moved card
             FoundationPiles[move.to.index].cards.Push(selectedCard);
         }
-            
-        //Update cards with new zone and column 
-        // foreach (Card card in move.movedCards)
-        // {
-        //     card.zone = move.to.zone;
-        //     card.column = move.to.index;
-        // }
     }
 
     public Card GetCardAbove(Card card){
@@ -331,13 +296,6 @@ public class GameManager : Singleton<GameManager>
             //Store move in history
             Debug.Log("Legal move");
             //Update Game data
-            
-            // CardColumn startCardColum = this.tableu[selectedCard.column];
-            // startCardColum.faceUpCards = startCardColum.faceUpCards.TakeUntil(c => c == selectedCard).ToList();
-            // targetCardColumn.faceUpCards.AddRange(move.movedCards);
-            // foreach(Card card in move.movedCards){
-            //     card.column = dropPosition.index;
-            // }
             ExecuteMove(move);
             movesHistory.Push(move);
         } else{
@@ -358,7 +316,6 @@ public class GameManager : Singleton<GameManager>
             Move move = new Move(movedCards, new TablePosition(Zone.Stock, -1), new TablePosition(Zone.Waste, -1), gameState.Clone() as GameState);
 
             foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
-                // subscribedHandler.NotifyFlipStockCardMove(stockPile.Peek(), new List<Card>(wastePile));
                 subscribedHandler.NotifyFlipStockCardMove(move);
             }
             //Update Game Data
@@ -367,7 +324,6 @@ public class GameManager : Singleton<GameManager>
             
             movesHistory.Push(move);
 
-            // graphics.NotifyFlipStockCardMove(nextCard, wastePile.Count);
         } else{
             Move move = new Move(this.WastePile.Reverse().ToList(), new TablePosition(Zone.Waste, -1), new TablePosition(Zone.Stock, -1), gameState.Clone() as GameState);
 
@@ -408,65 +364,7 @@ public class GameManager : Singleton<GameManager>
 
         this.RestartGame();
     }
-
-    // public void UndoMove(){
-    //     if(movesHistory.Count == 0){
-    //         return;
-    //     }
-
-    //     Move moveToUndo = movesHistory.Pop();
-    //     Move undoMove = new Move(moveToUndo.movedCards, moveToUndo.to, moveToUndo.from);
-
-    //     foreach(ISolitaireEventsHandlers subscribedHandler in subscribedInstances){
-    //         subscribedHandler.NotifyUndoMove(moveToUndo);
-    //     }
-    // }
-
-    // private void ExecuteUndoMove(Move move)
-    // {
-    //     Card selectedCard = move.movedCards.First();
-
-    //     if(move.from.zone == Zone.Tableu){
-    //         CardColumn startCardColum = this.tableu[selectedCard.column];
-       
-    //         //How am i supposed to know if I have to flip the card from the place where i started, or if I don't?
-    //         // if(  ){
-    //             Card faceUpCardToFlip = this.tableu[move.from.index].faceUpCards.First();
-    //             startCardColum.faceDownCards.Push(faceUpCardToFlip);
-    //         // }
-
-    //         startCardColum.faceUpCards.AddRange(move.movedCards);
-    //     }
-    //     //This one is straightforward enough
-    //     if(move.from.zone == Zone.Foundation){
-    //         //Update foundation pile - Remove moved card
-    //         foundationPiles[move.from.index].cards.Push(selectedCard);
-    //     }
-    //     if(move.from.zone == Zone.Waste){
-    //         //Update waste Pile (linked to stock pile)- Remove selected card
-    //         this.wastePile.Push(selectedCard);
-    //     }
-    //     //--------------------
-    //     if(move.to.zone == Zone.Tableu){
-    //         CardColumn targetCardColumn = this.tableu[move.to.index];
-
-    //         targetCardColumn.faceUpCards = targetCardColumn.faceUpCards.TakeUntil(c => c == selectedCard).ToList();
-
-    //     }
-    //     if(move.to.zone == Zone.Foundation){
-    //         //Update foundation pile - Add moved card
-    //         foundationPiles[move.to.index].cards.Pop();
-            
-    //     }
-            
-    //     //Update cards with new zone and column 
-    //     foreach (Card card in move.movedCards)
-    //     {
-    //         card.zone = move.to.zone;
-    //         card.column = move.to.index;
-    //     }
-    // }
-
+    
     public void UndoMove(){
         if(movesHistory.Count == 0){
             Debug.LogWarning("Can't undo since no moves have been played yet");

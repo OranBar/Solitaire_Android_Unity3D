@@ -30,7 +30,6 @@ public class CardView : MonoBehaviour
     private Vector3 offsetToCardAbove;
 
     public Vector3 positionBeforeDrag;
-    // private Vector3 positionBeforeDrag;
 
     public GameState CurrGameState{
         get{ return GameManager.Instance.gameState; }
@@ -99,19 +98,7 @@ public class CardView : MonoBehaviour
 
             TablePosition dropPosition = SolitaireGraphics.Instance.GetTablePosition(this.transform.position);
             
-            // Zone dropZone = SolitaireGraphics.Instance.GetDropZone(this.transform.position);
-            // int dropIndex = SolitaireGraphics.Instance.GetClosestColumn(this.transform.position);
-
-            
             GameManager.Instance.NotifyCardDropped(cardData, dropPosition);
-
-            // } else if(dropIndex >= -4 && dropIndex <= -1){
-            //     //Card dropped on Foundation pile
-            //     int suitIndex = (-dropIndex) + 1; 
-            //     Suit[] suits = Enum.GetValues(typeof(Suit)) as Suit[];
-            //     GameManager.Instance.NotifyCardDropped_FoundationPile(cardData, suits[suitIndex]);
-            // }
-
         }
     }
 
@@ -147,12 +134,10 @@ public class CardView : MonoBehaviour
     }
 
     private void MoveTowardsPoint_Recursive(Vector3 targetPosition, float speed){
-        // transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref currentVelocity, speed * Time.deltaTime);
         MoveToPoint(targetPosition);
         
         if(this.cardData.GetZone(CurrGameState) == Zone.Tableu && CardAbove != null && CardAbove.isFaceUp){
             targetPosition.z = CardAbove.transform.position.z;
-            // CardAbove.MoveTowardsPoint_Recursive(targetPosition - offsetToCardAbove, speed * 1.5f);
             StartCoroutine(MoveToPoint_Delayed_Coro(CardAbove, targetPosition - offsetToCardAbove, speed, 0.01f));
         }
     }
@@ -163,7 +148,6 @@ public class CardView : MonoBehaviour
     }
 
     public void SetSortingOrderAndZDepth(int cardsBelow, bool executeRecursively=true){
-        // int delta = (cardsBelow+1) + (int) this.transform.position.z;
         SetSortingOrder(cardsBelow);
         
         this.transform.SetZ(-(cardsBelow+1));
@@ -179,7 +163,6 @@ public class CardView : MonoBehaviour
             mySpriteRenderers[i].sortingOrder = (cardsBelow*10) + i;
         }
     }
-
     
 
     public void IncreaseSortingOrder(int amountToIncrease){
