@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 
@@ -79,6 +80,10 @@ public class CardView : MonoBehaviour
         if(flipping){return;}
         if(isFaceUp == false){return;}
 
+        if(Input.GetTouch(0).tapCount == 2){
+            return;
+        }
+
         if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
             if(this.CardAbove != null && this.CardAbove.isFaceUp){
                 return; //You can't take cards from the pile if they are not at the top.
@@ -95,6 +100,11 @@ public class CardView : MonoBehaviour
         if(PauseMenu.Instance.isPaused){return;}
         if(flipping){return;}
         if(isFaceUp == false){return;}
+
+        if(Input.GetTouch(0).tapCount == 2){
+            AutoMoveCard();
+            return;
+        }
 
         if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
             if(this.CardAbove != null && this.CardAbove.isFaceUp){
@@ -129,6 +139,36 @@ public class CardView : MonoBehaviour
             }
         }
 
+    }
+
+    private void AutoMoveCard(){
+        //Try all options
+        Card draggedCard = cardData;
+        Zone startZone = cardData.GetZone(CurrGameState);
+        int startIndex = cardData.GetColumn(CurrGameState);
+
+        for (int i = 0; i < CurrGameState.tableu.Length; i++)
+        {
+            if(startIndex == i && startZone == Zone.Tableu){continue;}
+
+            Card destinationCard = CurrGameState.tableu[i].faceUpCards.LastOrDefault();
+            if(GameManager.Instance.IsLegal_TableuMove(draggedCard, destinationCard)){
+                //We found it
+                GameManager.Instance.NotifyCardDropped(draggedCard, new TablePosition(Zone.Tableu, i));
+                return;
+            }
+        }
+
+        for (int i = 0; i < CurrGameState.foundationPiles.Length; i++)
+        {
+            if(startIndex == i && startZone == Zone.Foundation){continue;}
+            
+            if(GameManager.Instance.IsLegal_FoundationMove(draggedCard, CurrGameState.foundationPiles[i])){
+                //We found it
+                GameManager.Instance.NotifyCardDropped(draggedCard, new TablePosition(Zone.Foundation, i));
+                return;
+            }
+        }
     }
 
     public void MoveToPoint(Vector3 point){
