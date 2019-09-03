@@ -445,7 +445,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
                     Vector3 cardPosition = card.transform.position;
                     card.transform.DOMove(cardPosition + new Vector3(stockPile_padding_x, 0, 0), flipSpeed);
                     
-                    undoSequence.Append(card.transform.DOMove(cardPosition, flipSpeed));
+                    undoSequence.Join(card.transform.DOMove(cardPosition, flipSpeed));
                 }
             }
         }
@@ -497,7 +497,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
 
         selectedCardView.MoveToPoint(targetPos);
 
-        undoSequence.Append(selectedCardView.transform.DOMove(selectedCardPos, flipSpeed));
+        undoSequence.Join(selectedCardView.transform.DOMove(selectedCardPos, flipSpeed));
         undoSequence.Pause();
         movesUndo_sequences.Push(undoSequence);
     }
