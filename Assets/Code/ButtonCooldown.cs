@@ -10,7 +10,8 @@ public class ButtonCooldown : MonoBehaviour
 
     public void Start(){
         myButton = GetComponent<Button>();
-        beginCooldown = SolitaireGraphics.Instance.cardToTableu_animDuration * 29;
+        //36 is the number of cards that are put down when playing with 7 columns
+        beginCooldown = SolitaireGraphics.Instance.cardToTableu_animDuration * 37;
 
         if(beginCooldown > 0){
             ActivateBeginCooldown();

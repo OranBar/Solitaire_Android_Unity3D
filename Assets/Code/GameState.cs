@@ -32,13 +32,6 @@ public class GameState : ICloneable
         result.foundationPiles = foundationPiles.Select(fp => fp.Clone()).Cast<FoundationPile>().ToArray();
         return result; 
     }
-
-    // public SerializedGameState(GameManager gameState){
-    //     this.tableu = gameState.Tableu.Select(cc => cc.Clone()).Cast<CardColumn>().ToArray();
-    //     this.stockPile = new Stack<Card>(gameState.StockPile.ToList().Select(c => c.Clone()).Cast<Card>().Reverse());
-    //     this.wastePile = new Stack<Card>(gameState.WastePile.ToList().Select(c => c.Clone()).Cast<Card>().Reverse());
-    //     this.foundationPiles = gameState.FoundationPiles.Select(fp => fp.Clone()).Cast<FoundationPile>().ToArray();
-    // }
     
     public Zone GetCardZone(Card card){
         foreach(CardColumn tableuColumn in tableu){

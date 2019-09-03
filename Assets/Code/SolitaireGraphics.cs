@@ -32,10 +32,7 @@ public class SolitaireGraphics : Singleton<SolitaireGraphics>, ISolitaireEventsH
     private Transform cardsContainer;
 
 
-    protected override void InitTon(){ }
-
-    void Awake()
-    {
+    protected override void InitTon(){ 
         GameManager.Instance.RegisterSolitaireEventsHandler(this);
     }
     

@@ -332,8 +332,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c84dab5441f6b349a4d11035b9bf73b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  beginCooldown: 4.7
-  clickCooldown: 0.45
+  beginCooldown: 5.1
+  clickCooldown: 0.5
 --- !u!1 &158608800
 GameObject:
   m_ObjectHideFlags: 0
@@ -1504,7 +1504,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c84dab5441f6b349a4d11035b9bf73b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  beginCooldown: 4.7
+  beginCooldown: 5.1
   clickCooldown: 0
 --- !u!1 &860150943
 GameObject:
