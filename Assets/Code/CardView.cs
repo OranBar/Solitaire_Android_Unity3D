@@ -80,14 +80,20 @@ public class CardView : MonoBehaviour
         if(flipping){return;}
         if(isFaceUp == false){return;}
 
-        if(TouchInputHelper.DoubleTapDetected() || Input.GetKey(KeyCode.LeftControl)){
-            //Don't drag
-            UndoDrag();
-        }else{
-            BeginDrag();
+        if(Input.GetTouch(0).tapCount == 2){
+            return;
         }
-    }
 
+        if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
+            if(this.CardAbove != null && this.CardAbove.isFaceUp){
+                return; //You can't take cards from the pile if they are not at the top.
+            }
+        }
+        
+        ChangeSortingLayer_Recursive("Selectedcards");
+        isBeingDragged = true;
+        positionBeforeDrag = this.transform.position;
+    }
 
     void OnMouseUp()
     {
@@ -95,28 +101,11 @@ public class CardView : MonoBehaviour
         if(flipping){return;}
         if(isFaceUp == false){return;}
 
-        if(TouchInputHelper.DoubleTapDetected() || Input.GetKey(KeyCode.LeftControl)){
+        if(Input.GetTouch(0).tapCount == 2){
             AutoMoveCard();
-            UndoDrag();
-        }else{
-            EndDrag();
+            return;
         }
 
-    }
-
-    private void BeginDrag(){
-        if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
-            if(this.CardAbove != null && this.CardAbove.isFaceUp){
-                return; //You can't take cards from the pile if they are not at the top.
-            }
-        }
-    
-        ChangeSortingLayer_Recursive("Selectedcards");
-        isBeingDragged = true;
-        positionBeforeDrag = this.transform.position;
-    }
-
-    private void EndDrag(){
         if(this.cardData.GetZone(CurrGameState) == Zone.Waste){
             if(this.CardAbove != null && this.CardAbove.isFaceUp){
                 return; //You can't take cards from the pile if they are not at the top.
@@ -128,6 +117,28 @@ public class CardView : MonoBehaviour
         TablePosition dropPosition = SolitaireGraphics.Instance.GetTablePosition(this.transform.position);
         
         GameManager.Instance.NotifyCardDropped(cardData, dropPosition);
+    }
+
+    Vector3 currentVelocity;
+    bool isBeingDragged=false;
+    Vector3? targetMovePosition = null;
+
+    void Update()
+    {
+        if(isBeingDragged){
+            Vector2 targetPosition2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector3 targetPosition = new Vector3(targetPosition2D.x, targetPosition2D.y, this.transform.position.z);
+            MoveToPoint(targetPosition);
+        }
+        if(targetMovePosition.HasValue){
+            if(Vector3.Distance(this.transform.position, targetMovePosition.Value) > 0.0001f){
+                MoveTowardsPoint_Recursive(targetMovePosition.Value, moveSpeed);
+                transform.position = Vector3.SmoothDamp(transform.position, targetMovePosition.Value, ref currentVelocity, moveSpeed * Time.deltaTime);
+            } else {
+                targetMovePosition = null;
+            }
+        }
+
     }
 
     private void AutoMoveCard(){
@@ -153,33 +164,11 @@ public class CardView : MonoBehaviour
             if(startIndex == i && startZone == Zone.Foundation){continue;}
             
             if(GameManager.Instance.IsLegal_FoundationMove(draggedCard, CurrGameState.foundationPiles[i])){
+                //We found it
                 GameManager.Instance.NotifyCardDropped(draggedCard, new TablePosition(Zone.Foundation, i));
                 return;
             }
         }
-    }
-
-
-    Vector3 currentVelocity;
-    bool isBeingDragged=false;
-    Vector3? targetMovePosition = null;
-
-    void Update()
-    {
-        if(isBeingDragged){
-            Vector2 targetPosition2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector3 targetPosition = new Vector3(targetPosition2D.x, targetPosition2D.y, this.transform.position.z);
-            MoveToPoint(targetPosition);
-        }
-        if(targetMovePosition.HasValue){
-            if(Vector3.Distance(this.transform.position, targetMovePosition.Value) > 0.0001f){
-                MoveTowardsPoint_Recursive(targetMovePosition.Value, moveSpeed);
-                transform.position = Vector3.SmoothDamp(transform.position, targetMovePosition.Value, ref currentVelocity, moveSpeed * Time.deltaTime);
-            } else {
-                targetMovePosition = null;
-            }
-        }
-
     }
 
     public void MoveToPoint(Vector3 point){
